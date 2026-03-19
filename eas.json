@@ -1,0 +1,55 @@
+{
+  "cli": {
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
+      },
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY": "test_wISiEQSaCDnQbnkelTuLwXjGDYR"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY": "test_wISiEQSaCDnQbnkelTuLwXjGDYR",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_rUpYppRKQLklLXIvOkNrYxeTWIZ"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_rUpYppRKQLklLXIvOkNrYxeTWIZ",
+        "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_LPfOpOJxjyRDYXmhPTfasrTPNAu"
+      }
+    },
+    "production-apk": {
+      "extends": "production",
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
+      }
+    }
+  }
+}
