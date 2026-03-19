@@ -41,12 +41,7 @@
       "favicon": "./assets/images/icon.png",
       "bundler": "metro"
     },
-    "plugins": [
-      "expo-router",
-      "expo-font",
-      "expo-web-browser",
-      "expo-image-picker"
-    ],
+    "plugins": [],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
