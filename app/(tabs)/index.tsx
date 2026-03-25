@@ -39,7 +39,7 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPad = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 90;
+  const bottomPad = Platform.OS === 'web' ? 34 + 84 : Math.max(insets.bottom, 20) + 100;
 
   const [showUpgrade, setShowUpgrade] = useState(false);
 
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   petChipActive: { backgroundColor: '#fff' },
   petChipText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: 'rgba(255,255,255,0.85)' },
   petChipTextActive: { color: Colors.primary },
-  snapButtonContainer: { marginHorizontal: 20, marginTop: -20, marginBottom: 16 },
+  snapButtonContainer: { marginHorizontal: 20, marginTop: 16, marginBottom: 16 },
   snapButton: { borderRadius: 20, overflow: 'hidden', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 16, elevation: 10 },
   snapButtonGradient: { flexDirection: 'row', alignItems: 'center', padding: 20, gap: 16 },
   snapButtonIcon: {

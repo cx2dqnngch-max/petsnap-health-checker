@@ -16,16 +16,17 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.petsnap.healthchecker",
-      "buildNumber": "1",
+      "buildNumber": "3",
       "infoPlist": {
         "NSCameraUsageDescription": "PetSnap uses the camera to take photos of your pet's symptoms for health analysis.",
         "NSPhotoLibraryUsageDescription": "PetSnap accesses your photo library to select images of your pet's symptoms.",
-        "NSPhotoLibraryAddUsageDescription": "PetSnap saves analysis results to your photo library."
+        "NSPhotoLibraryAddUsageDescription": "PetSnap saves analysis results to your photo library.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.petsnap.healthchecker",
-      "versionCode": 2,
+      "versionCode": 8,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#4CAF50"

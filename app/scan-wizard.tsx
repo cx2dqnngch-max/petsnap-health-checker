@@ -36,7 +36,7 @@ export default function ScanScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPad = Platform.OS === 'web' ? 34 : insets.bottom;
+  const bottomPad = Platform.OS === 'web' ? 34 : Math.max(insets.bottom, 24);
 
   const [step, setStep] = useState(1);
   const [selectedPetId, setSelectedPetId] = useState<string | null>(pets[0]?.id ?? null);
