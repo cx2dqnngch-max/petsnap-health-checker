@@ -542,6 +542,23 @@ export default function MoreScreen() {
             </View>
             <Text style={[styles.educationDesc, { color: textSec }]}>{item.summary}</Text>
           </Pressable>
+
+      <Pressable
+        style={styles.menuItem}
+        onPress={() => {
+          const { Linking } = require('react-native');
+          Linking.openURL('https://apps.apple.com/account/subscriptions');
+        }}
+      >
+        <View style={styles.menuItemLeft}>
+          <Ionicons name="card-outline" size={22} color="#4CAF50" />
+          <View style={styles.menuItemText}>
+            <Text style={styles.menuItemTitle}>Manage Subscription</Text>
+            <Text style={styles.menuItemSubtitle}>Cancel or change your plan</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color="#ccc" />
+      </Pressable>
         ))}
       </View>
 
