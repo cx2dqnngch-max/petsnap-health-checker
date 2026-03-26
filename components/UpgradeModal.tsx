@@ -5,7 +5,6 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -41,34 +40,46 @@ export function UpgradeModal({ visible, onClose, scansUsed = 3 }: UpgradeModalPr
   const textSec = isDark ? Colors.dark.textSecondary : Colors.textSecondary;
   const surface = isDark ? Colors.dark.surface : '#F7FFFE';
 
-  const { offerings, purchase, restore, isPurchasing, isRestoring, isSubscribed } = useSubscription();
+  const { offerings, purchase, restore, isPurchasing, isRestoring } = useSubscription();
 
-  const [confirmPackage, setConfirmPackage] = useState<any>(null);
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [statusMsg, setStatusMsg] = useState('');
   const [statusError, setStatusError] = useState(false);
 
   const currentOffering = offerings?.current;
-  const monthlyPkg = currentOffering?.monthly ?? currentOffering?.availablePackages?.find(p => p.packageType === 'MONTHLY');
-  const yearlyPkg = currentOffering?.annual ?? currentOffering?.availablePackages?.find(p => p.packageType === 'ANNUAL');
+
+  const monthlyPkg = currentOffering?.monthly
+    ?? currentOffering?.availablePackages?.find(
+        (p: any) => p.packageType === 'MONTHLY' || p.identifier === '$rc_monthly'
+      );
+
+  const yearlyPkg = currentOffering?.annual
+    ?? currentOffering?.availablePackages?.find(
+        (p: any) =>
+          p.packageType === 'ANNUAL' ||
+          p.identifier === '$rc_annual' ||
+          (p.product?.productIdentifier ?? '').toLowerCase().includes('annual') ||
+          (p.product?.productIdentifier ?? '').toLowerCase().includes('yearly')
+      );
 
   const monthlyPrice = monthlyPkg?.product?.priceString ?? '$4.99';
   const yearlyPrice = yearlyPkg?.product?.priceString ?? '$39.99';
 
-  const handlePressPlan = (pkg: any) => {
-    if (!pkg) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  const selectedPkg = selectedPlan === 'annual' ? yearlyPkg : monthlyPkg;
+
+  const handleSubscribe = async () => {
+    if (!selectedPkg) {
+      setStatusError(true);
+      setStatusMsg('Subscription plans are still loading. Please wait a moment and try again.');
+      return;
+    }
     setStatusMsg('');
     setStatusError(false);
-    setConfirmPackage(pkg);
-  };
-
-  const handleConfirmPurchase = async () => {
-    if (!confirmPackage) return;
-    setConfirmPackage(null);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      await purchase(confirmPackage);
+      await purchase(selectedPkg);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setStatusMsg('Purchase successful! Enjoy unlimited scans.');
+      setStatusMsg('Welcome to PetSnap Premium! Enjoy unlimited scans.');
       setStatusError(false);
       setTimeout(() => onClose(), 1500);
     } catch (err: any) {
@@ -83,325 +94,180 @@ export function UpgradeModal({ visible, onClose, scansUsed = 3 }: UpgradeModalPr
   };
 
   const handleRestore = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setStatusMsg('');
     setStatusError(false);
     try {
       await restore();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setStatusMsg('Purchases restored!');
-      setStatusError(false);
-      setTimeout(() => onClose(), 1500);
+      setStatusMsg('Purchases restored successfully.');
     } catch {
       setStatusError(true);
-      setStatusMsg('Could not restore purchases. Try again.');
+      setStatusMsg('Could not restore purchases. Please try again.');
     }
   };
 
-  const isBusy = isPurchasing || isRestoring;
-
   return (
-    <>
-      <Modal
-        visible={visible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={onClose}
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <LinearGradient
+        colors={isDark ? ['#1a1a2e', '#16213e'] : [Colors.primary, Colors.accent]}
+        style={styles.heroGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <View style={[styles.container, { backgroundColor: bg }]}>
+        <View style={[styles.heroTop, { paddingTop: insets.top + 16 }]}>
+          <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={16}>
+            <Ionicons name="close" size={24} color="#fff" />
+          </Pressable>
+          <MaterialCommunityIcons name="crown" size={48} color="#FFD700" style={{ marginBottom: 8 }} />
+          <Text style={styles.heroTitle}>PetSnap Premium</Text>
+          <Text style={styles.heroSubtitle}>
+            {scansUsed >= 3
+              ? "You have used all 3 free scans. Upgrade for unlimited access."
+              : "Unlock everything PetSnap has to offer."}
+          </Text>
+        </View>
+      </LinearGradient>
+
+      <ScrollView
+        style={[styles.container, { backgroundColor: bg }]}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+      >
+        <View style={styles.benefitsSection}>
+          {BENEFITS.map((b) => (
+            <View key={b.label} style={styles.benefitRow}>
+              <MaterialCommunityIcons
+                name={b.icon as any}
+                size={20}
+                color={Colors.primary}
+                style={{ marginRight: 12 }}
+              />
+              <Text style={[styles.benefitText, { color: textColor }]}>{b.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.plansRow}>
+          <Pressable
+            style={[
+              styles.planCard,
+              {
+                backgroundColor: surface,
+                borderColor: selectedPlan === 'annual' ? Colors.primary : (isDark ? '#333' : '#E0E0E0'),
+                borderWidth: selectedPlan === 'annual' ? 2.5 : 2,
+              },
+            ]}
+            onPress={() => { setSelectedPlan('annual'); setStatusMsg(''); }}
+          >
+            <View style={styles.bestValueBadge}>
+              <Text style={styles.bestValueText}>BEST VALUE</Text>
+            </View>
+            <Text style={[styles.planPrice, { color: textColor }]}>{yearlyPrice}</Text>
+            <Text style={[styles.planPeriod, { color: textSec }]}>per year</Text>
+            <Text style={[styles.planNote, { color: Colors.primary }]}>Save over 30%</Text>
+          </Pressable>
+
+          <Pressable
+            style={[
+              styles.planCard,
+              {
+                backgroundColor: surface,
+                borderColor: selectedPlan === 'monthly' ? Colors.primary : (isDark ? '#333' : '#E0E0E0'),
+                borderWidth: selectedPlan === 'monthly' ? 2.5 : 2,
+              },
+            ]}
+            onPress={() => { setSelectedPlan('monthly'); setStatusMsg(''); }}
+          >
+            <Text style={[styles.planPrice, { color: textColor, marginTop: 8 }]}>{monthlyPrice}</Text>
+            <Text style={[styles.planPeriod, { color: textSec }]}>per month</Text>
+            <Text style={[styles.planNote, { color: textSec }]}>Cancel anytime</Text>
+          </Pressable>
+        </View>
+
+        <Pressable
+          onPress={handleSubscribe}
+          disabled={isPurchasing}
+          style={({ pressed }) => [styles.subscribeBtn, { opacity: pressed || isPurchasing ? 0.8 : 1 }]}
+        >
           <LinearGradient
             colors={[Colors.primary, Colors.accent]}
+            style={styles.subscribeBtnGradient}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.heroGradient, { paddingTop: Platform.OS === 'web' ? 40 : insets.top + 16 }]}
+            end={{ x: 1, y: 0 }}
           >
-            <Pressable onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={22} color="rgba(255,255,255,0.85)" />
-            </Pressable>
-
-            <View style={styles.pawRow}>
-              <MaterialCommunityIcons name="paw" size={44} color="rgba(255,255,255,0.35)" />
-              <MaterialCommunityIcons name="paw" size={60} color="rgba(255,255,255,0.9)" />
-              <MaterialCommunityIcons name="paw" size={44} color="rgba(255,255,255,0.35)" />
-            </View>
-
-            <Text style={styles.heroTitle}>Upgrade to Premium</Text>
-            <Text style={styles.heroSubtitle}>
-              {scansUsed >= 3
-                ? `You've used all 3 free scans this month!`
-                : `You're on the free plan — upgrade for more.`}
-            </Text>
+            {isPurchasing ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.subscribeBtnText}>
+                {selectedPlan === 'annual'
+                  ? 'Subscribe Now · ' + yearlyPrice + '/yr'
+                  : 'Subscribe Now · ' + monthlyPrice + '/mo'}
+              </Text>
+            )}
           </LinearGradient>
+        </Pressable>
 
-          <ScrollView
-            contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={[styles.benefitsCard, { backgroundColor: surface }]}>
-              <Text style={[styles.benefitsTitle, { color: textColor }]}>Everything in Premium</Text>
-              <View style={styles.benefitsList}>
-                {BENEFITS.map((b, i) => (
-                  <View key={i} style={styles.benefitRow}>
-                    <View style={styles.checkCircle}>
-                      <Ionicons name="checkmark" size={14} color="#fff" />
-                    </View>
-                    <MaterialCommunityIcons name={b.icon as any} size={20} color={Colors.primary} style={{ width: 24 }} />
-                    <Text style={[styles.benefitLabel, { color: textColor }]}>{b.label}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
+        {statusMsg ? (
+          <Text style={[styles.statusMsg, { color: statusError ? Colors.warning : Colors.success }]}>
+            {statusMsg}
+          </Text>
+        ) : null}
 
-            <View style={styles.plansRow}>
-              <Pressable
-                onPress={() => handlePressPlan(monthlyPkg)}
-                disabled={isBusy || !monthlyPkg}
-                style={({ pressed }) => [styles.planCard, { backgroundColor: surface, opacity: (pressed || isBusy) ? 0.75 : 1 }]}
-              >
-                <Text style={[styles.planPeriod, { color: textSec }]}>Monthly</Text>
-                <Text style={[styles.planPrice, { color: textColor }]}>{monthlyPrice}</Text>
-                <Text style={[styles.planPer, { color: textSec }]}>per month</Text>
-              </Pressable>
+        <Pressable onPress={handleRestore} disabled={isRestoring} style={styles.restoreBtn}>
+          {isRestoring ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : (
+            <Text style={[styles.restoreText, { color: textSec }]}>Restore Purchases</Text>
+          )}
+        </Pressable>
 
-              <Pressable
-                onPress={() => handlePressPlan(yearlyPkg)}
-                disabled={isBusy || !yearlyPkg}
-                style={({ pressed }) => [styles.planCardHighlight, { opacity: (pressed || isBusy) ? 0.8 : 1 }]}
-              >
-                <LinearGradient
-                  colors={[Colors.primary, Colors.accent]}
-                  style={styles.planCardHighlightInner}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <View style={styles.bestValueBadge}>
-                    <Text style={styles.bestValueText}>BEST VALUE</Text>
-                  </View>
-                  <Text style={styles.planPeriodLight}>Yearly</Text>
-                  <Text style={styles.planPriceLight}>{yearlyPrice}</Text>
-                  <Text style={styles.planPerLight}>per year</Text>
-                  <Text style={styles.planSaving}>Save 33%</Text>
-                </LinearGradient>
-              </Pressable>
-            </View>
-
-            <Pressable
-              onPress={() => handlePressPlan(yearlyPkg)}
-              disabled={isBusy || !yearlyPkg}
-              style={({ pressed }) => [styles.mainCta, { opacity: (pressed || isBusy) ? 0.8 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }]}
-            >
-              <LinearGradient
-                colors={[Colors.primary, Colors.accent]}
-                style={styles.mainCtaGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                {isBusy ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <>
-                    <MaterialCommunityIcons name="crown" size={22} color="#fff" />
-                    <Text style={styles.mainCtaText}>Subscribe Now — {yearlyPrice}/yr</Text>
-                  </>
-                )}
-              </LinearGradient>
-            </Pressable>
-
-            {statusMsg ? (
-              <View style={[styles.statusBanner, { backgroundColor: statusError ? '#FFF0F0' : '#F0FFF4' }]}>
-                <Ionicons
-                  name={statusError ? 'alert-circle' : 'checkmark-circle'}
-                  size={18}
-                  color={statusError ? '#E53E3E' : Colors.primary}
-                />
-                <Text style={[styles.statusText, { color: statusError ? '#E53E3E' : Colors.primary }]}>
-                  {statusMsg}
-                </Text>
-              </View>
-            ) : null}
-
-            <View style={styles.bottomActions}>
-              <Pressable onPress={handleRestore} disabled={isBusy} style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}>
-                <Text style={[styles.restoreText, { color: textSec }]}>
-                  {isRestoring ? 'Restoring…' : 'Restore Purchases'}
-                </Text>
-              </Pressable>
-
-              <Pressable onPress={onClose} style={styles.notNow}>
-                <Text style={[styles.notNowText, { color: textSec }]}>Not now — continue with 3 free scans/month</Text>
-              </Pressable>
-            </View>
-
-            <Text style={[styles.legalNote, { color: textSec }]}>
-              Cancel anytime. Subscriptions managed through the App Store or Google Play.
-            </Text>
-          </ScrollView>
-        </View>
-      </Modal>
-
-      <Modal
-        visible={!!confirmPackage}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setConfirmPackage(null)}
-      >
-        <View style={styles.confirmOverlay}>
-          <View style={[styles.confirmDialog, { backgroundColor: bg }]}>
-            <MaterialCommunityIcons name="crown" size={36} color={Colors.primary} style={{ marginBottom: 12 }} />
-            <Text style={[styles.confirmTitle, { color: textColor }]}>Confirm Purchase</Text>
-            <Text style={[styles.confirmBody, { color: textSec }]}>
-              {confirmPackage?.product?.title ?? 'PetSnap Premium'}{'\n'}
-              <Text style={{ fontFamily: 'Inter_700Bold', color: textColor }}>
-                {confirmPackage?.product?.priceString ?? ''}
-              </Text>{' '}
-              {confirmPackage?.product?.subscriptionPeriod === 'P1M' ? '/ month' : '/ year'}
-            </Text>
-            <Text style={[styles.confirmNote, { color: textSec }]}>
-              This is a test purchase. No real charge will be made.
-            </Text>
-            <View style={styles.confirmButtons}>
-              <Pressable
-                onPress={() => setConfirmPackage(null)}
-                style={({ pressed }) => [styles.confirmCancel, { opacity: pressed ? 0.7 : 1, backgroundColor: surface }]}
-              >
-                <Text style={[styles.confirmCancelText, { color: textSec }]}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                onPress={handleConfirmPurchase}
-                style={({ pressed }) => [styles.confirmOk, { opacity: pressed ? 0.85 : 1 }]}
-              >
-                <LinearGradient
-                  colors={[Colors.primary, Colors.accent]}
-                  style={styles.confirmOkGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Text style={styles.confirmOkText}>Confirm</Text>
-                </LinearGradient>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </>
+        <Text style={[styles.legalText, { color: textSec }]}>
+          Subscriptions renew automatically unless cancelled at least 24 hours before the end of the
+          current period. Cancel anytime in your App Store subscription settings.
+          Subscriptions are managed through the App Store.
+        </Text>
+      </ScrollView>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  heroGradient: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-    alignItems: 'center',
-    gap: 8,
-  },
-  closeBtn: {
-    alignSelf: 'flex-end',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  pawRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 8,
-  },
+  heroGradient: { paddingBottom: 24 },
+  heroTop: { alignItems: 'center', paddingHorizontal: 24 },
+  closeBtn: { position: 'absolute', top: 0, right: 16, padding: 8 },
   heroTitle: {
-    fontSize: 30,
+    fontSize: 26,
     fontFamily: 'Inter_700Bold',
     color: '#fff',
+    marginBottom: 8,
     textAlign: 'center',
   },
   heroSubtitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: 'Inter_400Regular',
     color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 20,
   },
-  content: {
-    padding: 20,
-    gap: 16,
-  },
-  benefitsCard: {
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  benefitsTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
-    marginBottom: 14,
-  },
-  benefitsList: { gap: 12 },
-  benefitRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  checkCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  benefitLabel: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-  },
-  plansRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
+  benefitsSection: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 8 },
+  benefitRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  benefitText: { fontSize: 15, fontFamily: 'Inter_400Regular', flex: 1 },
+  plansRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 12, marginVertical: 16 },
   planCard: {
     flex: 1,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
-    gap: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  planPeriod: { fontSize: 13, fontFamily: 'Inter_500Medium' },
-  planPrice: { fontSize: 26, fontFamily: 'Inter_700Bold' },
-  planPer: { fontSize: 12, fontFamily: 'Inter_400Regular' },
-  planCardHighlight: {
-    flex: 1,
-    borderRadius: 16,
+    position: 'relative',
     overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  planCardHighlightInner: {
-    flex: 1,
-    padding: 16,
-    alignItems: 'center',
-    gap: 4,
   },
   bestValueBadge: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    borderRadius: 8,
-    paddingHorizontal: 8,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.primary,
     paddingVertical: 3,
-    marginBottom: 4,
+    alignItems: 'center',
   },
   bestValueText: {
     fontSize: 10,
@@ -409,119 +275,31 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 0.5,
   },
-  planPeriodLight: { fontSize: 13, fontFamily: 'Inter_500Medium', color: 'rgba(255,255,255,0.85)' },
-  planPriceLight: { fontSize: 26, fontFamily: 'Inter_700Bold', color: '#fff' },
-  planPerLight: { fontSize: 12, fontFamily: 'Inter_400Regular', color: 'rgba(255,255,255,0.8)' },
-  planSaving: { fontSize: 12, fontFamily: 'Inter_700Bold', color: 'rgba(255,255,255,0.9)', marginTop: 2 },
-  mainCta: {
-    borderRadius: 18,
-    overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  mainCtaGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    gap: 10,
-    minHeight: 58,
-  },
-  mainCtaText: { fontSize: 17, fontFamily: 'Inter_700Bold', color: '#fff' },
-  statusBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 12,
-  },
-  statusText: {
-    flex: 1,
+  planPrice: { fontSize: 22, fontFamily: 'Inter_700Bold', marginTop: 20 },
+  planPeriod: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 2 },
+  planNote: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 6, textAlign: 'center' },
+  subscribeBtn: { marginHorizontal: 16, marginTop: 8, borderRadius: 16, overflow: 'hidden' },
+  subscribeBtnGradient: { paddingVertical: 16, alignItems: 'center' },
+  subscribeBtnText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' },
+  statusMsg: {
+    textAlign: 'center',
+    marginHorizontal: 24,
+    marginTop: 12,
     fontSize: 14,
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Inter_400Regular',
   },
-  bottomActions: { gap: 8, alignItems: 'center' },
+  restoreBtn: { alignItems: 'center', marginTop: 16, paddingVertical: 8 },
   restoreText: {
-    fontSize: 13,
-    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     textDecorationLine: 'underline',
   },
-  notNow: { alignItems: 'center', paddingVertical: 4 },
-  notNowText: { fontSize: 13, fontFamily: 'Inter_400Regular', textAlign: 'center' },
-  legalNote: {
+  legalText: {
     fontSize: 11,
     fontFamily: 'Inter_400Regular',
     textAlign: 'center',
+    marginHorizontal: 24,
+    marginTop: 16,
     lineHeight: 16,
-  },
-  confirmOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  confirmDialog: {
-    width: '100%',
-    maxWidth: 360,
-    borderRadius: 24,
-    padding: 28,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 16,
-  },
-  confirmTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter_700Bold',
-    marginBottom: 8,
-  },
-  confirmBody: {
-    fontSize: 15,
-    fontFamily: 'Inter_400Regular',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 8,
-  },
-  confirmNote: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    textAlign: 'center',
-    marginBottom: 20,
-    fontStyle: 'italic',
-  },
-  confirmButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    width: '100%',
-  },
-  confirmCancel: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-  },
-  confirmCancelText: {
-    fontSize: 15,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  confirmOk: {
-    flex: 1,
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  confirmOkGradient: {
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  confirmOkText: {
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
-    color: '#fff',
   },
 });
