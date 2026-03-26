@@ -317,6 +317,21 @@ function AboutModal({ visible, onClose, isDark }: AboutModalProps) {
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={[styles.modalContainer, { backgroundColor: bg }]}>
         <View style={[styles.modalHeader, { paddingTop: insets.top + 12 }]}>
+            {isSubscribed && (
+              <Pressable
+                style={({ pressed }) => [styles.menuItem, { opacity: pressed ? 0.7 : 1 }]}
+                onPress={() => Linking.openURL('https://apps.apple.com/account/subscriptions')}
+              >
+                <View style={[styles.menuIconWrap, { backgroundColor: isDark ? '#1e3a2f' : '#e8f5e9' }]}>
+                  <Ionicons name="card-outline" size={20} color={Colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.menuLabel, { color: textColor }]}>Manage Subscription</Text>
+                  <Text style={[styles.menuSub, { color: textSec }]}>Update or cancel your plan</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={textSec} />
+              </Pressable>
+            )}
           <Pressable onPress={onClose} style={styles.modalClose}>
             <Ionicons name="close" size={24} color={textColor} />
           </Pressable>
@@ -528,37 +543,7 @@ export default function MoreScreen() {
       </Text>
       <View style={{ paddingHorizontal: 20, gap: 12 }}>
         {EDUCATION_ARTICLES.map((item, i) => (
-          <Pressable
-            key={i}
-            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setSelectedArticle(item); }}
-            style={({ pressed }) => [styles.educationCard, { backgroundColor: surface, opacity: pressed ? 0.8 : 1 }]}
-          >
-            <View style={styles.educationCardHeader}>
-              <View style={[styles.educationIconBadge, { backgroundColor: `${Colors.primary}18` }]}>
-                <MaterialCommunityIcons name="book-open" size={16} color={Colors.primary} />
-              </View>
-              <Text style={[styles.educationTitle, { color: textColor }]}>{item.title}</Text>
-              <Ionicons name="chevron-forward" size={16} color={textSec} />
-            </View>
-            <Text style={[styles.educationDesc, { color: textSec }]}>{item.summary}</Text>
-          </Pressable>
 
-      <Pressable
-        style={styles.menuItem}
-        onPress={() => {
-          const { Linking } = require('react-native');
-          Linking.openURL('https://apps.apple.com/account/subscriptions');
-        }}
-      >
-        <View style={styles.menuItemLeft}>
-          <Ionicons name="card-outline" size={22} color="#4CAF50" />
-          <View style={styles.menuItemText}>
-            <Text style={styles.menuItemTitle}>Manage Subscription</Text>
-            <Text style={styles.menuItemSubtitle}>Cancel or change your plan</Text>
-          </View>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color="#ccc" />
-      </Pressable>
         ))}
       </View>
 
