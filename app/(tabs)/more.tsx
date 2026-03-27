@@ -403,7 +403,7 @@ export default function MoreScreen() {
 
   const handleEducationLibrary = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    scrollRef.current?.scrollTo({ y: educationY.current, animated: true });
+    setSelectedArticle(EDUCATION_ARTICLES[0]);
   };
 
   const handleReminders = () => {
