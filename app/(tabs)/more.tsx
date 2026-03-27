@@ -403,7 +403,7 @@ export default function MoreScreen() {
 
   const handleEducationLibrary = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedArticle(EDUCATION_ARTICLES[0]);
+    scrollRef.current?.scrollTo({ y: educationY.current, animated: true });
   };
 
   const handleReminders = () => {
@@ -542,7 +542,34 @@ export default function MoreScreen() {
         Education
       </Text>
       <View style={{ paddingHorizontal: 20, gap: 12 }}>
-              </View>
+        {EDUCATION_ARTICLES.map((item, i) => (
+          <Pressable
+            key={i}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setSelectedArticle(item);
+            }}
+            style={({ pressed }) => [{
+              backgroundColor: surface,
+              borderRadius: 14,
+              padding: 16,
+              borderWidth: 1,
+              borderColor: border,
+              opacity: pressed ? 0.8 : 1,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+            }]}
+          >
+            <MaterialCommunityIcons name='book-open-variant' size={22} color={Colors.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, fontFamily: 'Inter_600SemiBold', color: textColor, marginBottom: 2 }}>{item.title}</Text>
+              <Text style={{ fontSize: 13, fontFamily: 'Inter_400Regular', color: textSec, lineHeight: 18 }}>{item.summary}</Text>
+            </View>
+            <Feather name='chevron-right' size={18} color={textSec} />
+          </Pressable>
+        ))}
+      </View>
 
       <View style={[styles.section, { marginHorizontal: 20, marginTop: 28, backgroundColor: surface, borderRadius: 16 }]}>
         <SettingsRow
