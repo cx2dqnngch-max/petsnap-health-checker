@@ -720,3 +720,4 @@ const styles = StyleSheet.create({
   },
   aboutDisclaimerText: { flex: 1, fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 20 },
 });
+  const { isSubscribed } = useSubscription();

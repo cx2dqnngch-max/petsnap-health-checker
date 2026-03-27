@@ -62,6 +62,12 @@
         "serviceAccountKeyPath": "./google-play-service-account.json",
         "track": "internal"
       }
+    },
+    "production-ios": {
+      "ios": {
+        "appleTeamId": "M57PLQ6DQW",
+        "ascAppId": "6760867303"
+      }
     }
   }
 }
