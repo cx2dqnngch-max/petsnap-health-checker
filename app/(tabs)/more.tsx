@@ -385,7 +385,7 @@ export default function MoreScreen() {
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPad = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 90;
   const { scanHistory, pets, monthlyScansUsed, freeScansLeft } = usePets();
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, customerInfo } = useSubscription();
 
   const scrollRef = useRef<ScrollView>(null);
   const educationY = useRef(0);
@@ -404,6 +404,11 @@ export default function MoreScreen() {
   const handleEducationLibrary = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     scrollRef.current?.scrollTo({ y: educationY.current, animated: true });
+  };
+
+  const handleManageSubscription = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL('itms-apps://apps.apple.com/account/subscriptions');
   };
 
   const handleReminders = () => {
@@ -487,6 +492,33 @@ export default function MoreScreen() {
       <View style={[styles.header, { paddingTop: topPad + 16 }]}>
         <Text style={[styles.headerTitle, { color: textColor }]}>More</Text>
       </View>
+
+      {isSubscribed && (
+        <Pressable
+          onPress={handleManageSubscription}
+          style={({ pressed }) => [{ marginHorizontal: 20, borderRadius: 18, overflow: 'hidden', opacity: pressed ? 0.9 : 1, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 }]}
+        >
+          <LinearGradient
+            colors={[Colors.primary, Colors.accent]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ flexDirection: 'row', alignItems: 'center', padding: 18, gap: 14 }}
+          >
+            <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialCommunityIcons name='crown' size={24} color='#fff' />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 17, fontFamily: 'Inter_700Bold', color: '#fff' }}>PetSnap Premium</Text>
+              <Text style={{ fontSize: 13, fontFamily: 'Inter_400Regular', color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>
+                {(customerInfo?.activeSubscriptions ?? []).some((s: string) => s.includes('annual') || s.includes('yearly'))
+                  ? 'Annual plan · Manage in App Store'
+                  : 'Monthly plan · Manage in App Store'}
+              </Text>
+            </View>
+            <Ionicons name='chevron-forward' size={20} color='rgba(255,255,255,0.8)' />
+          </LinearGradient>
+        </Pressable>
+      )}
 
       {!isSubscribed && <Pressable
         onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setShowUpgrade(true); }}
