@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect, useRef } from "react";
 import { Platform } from "react-native";
 import Purchases from "react-native-purchases";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -62,6 +62,20 @@ function useSubscriptionContext() {
     },
     onSuccess: () => customerInfoQuery.refetch(),
   });
+  // Auto-restore once on startup if no active subscription found
+  const hasAutoRestored = useRef(false);
+  useEffect(() => {
+    if (!hasAutoRestored.current && isConfigured && customerInfoQuery.data !== undefined) {
+      const active = customerInfoQuery.data?.entitlements?.active ?? {};
+      const subs = customerInfoQuery.data?.activeSubscriptions ?? [];
+      if (Object.keys(active).length === 0 && subs.length === 0) {
+        hasAutoRestored.current = true;
+        Purchases.restorePurchases()
+          .then(() => customerInfoQuery.refetch())
+          .catch(() => {});
+      }
+    }
+  }, [customerInfoQuery.data, isConfigured]);
 
   const restoreMutation = useMutation({
     mutationFn: async () => {
@@ -71,7 +85,8 @@ function useSubscriptionContext() {
   });
 
   const isSubscribed =
-    customerInfoQuery.data?.entitlements.active?.[REVENUECAT_ENTITLEMENT_IDENTIFIER] !== undefined;
+    customerInfoQuery.data?.entitlements.active?.[REVENUECAT_ENTITLEMENT_IDENTIFIER] !== undefined ||
+    (customerInfoQuery.data?.activeSubscriptions ?? []).length > 0;
 
   return {
     customerInfo: customerInfoQuery.data,
@@ -80,6 +95,7 @@ function useSubscriptionContext() {
     isLoading: customerInfoQuery.isLoading || offeringsQuery.isLoading,
     purchase: purchaseMutation.mutateAsync,
     restore: restoreMutation.mutateAsync,
+    refetchCustomerInfo: () => customerInfoQuery.refetch(),
     isPurchasing: purchaseMutation.isPending,
     isRestoring: restoreMutation.isPending,
     purchaseError: purchaseMutation.error,

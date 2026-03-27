@@ -41,7 +41,7 @@ export function UpgradeModal({ visible, onClose, scansUsed = 3 }: UpgradeModalPr
   const textSec = isDark ? Colors.dark.textSecondary : Colors.textSecondary;
   const surface = isDark ? Colors.dark.surface : '#F7FFFE';
 
-  const { offerings, purchase, restore, isPurchasing, isRestoring } = useSubscription();
+  const { offerings, purchase, restore, refetchCustomerInfo, isPurchasing, isRestoring } = useSubscription();
 
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [statusMsg, setStatusMsg] = useState('');
@@ -88,13 +88,21 @@ export function UpgradeModal({ visible, onClose, scansUsed = 3 }: UpgradeModalPr
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           setStatusMsg('Welcome to PetSnap Premium! Enjoy unlimited scans.');
           setStatusError(false);
+          await refetchCustomerInfo();
           setTimeout(() => onClose(), 1500);
         }
       } catch (err: any) {
         if (!err?.userCancelled) {
-          setStatusError(true);
-          setStatusMsg(err?.message ?? 'Purchase failed. Please try again.');
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          // Apple may say 'already subscribed' — silently restore to sync state
+          try {
+            await restore();
+            setStatusMsg('');
+            setTimeout(() => onClose(), 800);
+          } catch {
+            setStatusError(true);
+            setStatusMsg(err?.message ?? 'Purchase failed. Please try again.');
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          }
         } else {
           setStatusMsg('');
         }
