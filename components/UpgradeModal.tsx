@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Purchases from 'react-native-purchases';
-import Purchases from 'react-native-purchases';
 import { Colors } from '@/constants/colors';
 import { useSubscription } from '@/lib/revenuecat';
 
