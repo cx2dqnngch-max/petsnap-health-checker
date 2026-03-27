@@ -542,10 +542,7 @@ export default function MoreScreen() {
         Education
       </Text>
       <View style={{ paddingHorizontal: 20, gap: 12 }}>
-        {EDUCATION_ARTICLES.map((item, i) => (
-
-        ))}
-      </View>
+              </View>
 
       <View style={[styles.section, { marginHorizontal: 20, marginTop: 28, backgroundColor: surface, borderRadius: 16 }]}>
         <SettingsRow
