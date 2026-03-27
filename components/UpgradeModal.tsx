@@ -13,6 +13,8 @@ import {
   useColorScheme,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Purchases from 'react-native-purchases';
+import Purchases from 'react-native-purchases';
 import { Colors } from '@/constants/colors';
 import { useSubscription } from '@/lib/revenuecat';
 
@@ -68,6 +70,38 @@ export function UpgradeModal({ visible, onClose, scansUsed = 3 }: UpgradeModalPr
   const selectedPkg = selectedPlan === 'annual' ? yearlyPkg : monthlyPkg;
 
   const handleSubscribe = async () => {
+    // Yearly fallback: if offering slot empty, fetch product directly from StoreKit
+    if (!selectedPkg && selectedPlan === 'annual') {
+      setStatusMsg('');
+      setStatusError(false);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      try {
+        const products = await Purchases.getProducts(
+          ['petsnap_premium_yearly', 'petsnap_premium_annual']
+        );
+        if (products.length === 0) {
+          setStatusError(true);
+          setStatusMsg('Subscription plans are still loading. Please wait a moment and try again.');
+          return;
+        }
+        const { customerInfo } = await Purchases.purchaseStoreProduct(products[0]);
+        if (customerInfo) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          setStatusMsg('Welcome to PetSnap Premium! Enjoy unlimited scans.');
+          setStatusError(false);
+          setTimeout(() => onClose(), 1500);
+        }
+      } catch (err: any) {
+        if (!err?.userCancelled) {
+          setStatusError(true);
+          setStatusMsg(err?.message ?? 'Purchase failed. Please try again.');
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        } else {
+          setStatusMsg('');
+        }
+      }
+      return;
+    }
     if (!selectedPkg) {
       setStatusError(true);
       setStatusMsg('Subscription plans are still loading. Please wait a moment and try again.');
