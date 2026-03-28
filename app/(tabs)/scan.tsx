@@ -55,7 +55,7 @@ export default function ScanTabScreen() {
 
       <View style={[styles.scansLeftPill, { backgroundColor: surface, borderColor: border }]}>
         {isSubscribed ? (
-          <MaterialCommunityIcons name=crown size={18} color={Colors.primary} />
+          <MaterialCommunityIcons name="crown" size={18} color={Colors.primary} />
         ) : (
           <View style={styles.scanDotsRow}>
             {Array.from({ length: FREE_SCANS_PER_MONTH }).map((_, i) => (
