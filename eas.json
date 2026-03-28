@@ -38,7 +38,8 @@
       "env": {
         "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_rUpYppRKQLklLXIvOkNrYxeTWIZ",
         "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_LPfOpOJxjyRDYXmhPTfasrTPNAu"
-      }
+      },
+      "image": "latest"
     },
     "production-ios": {
       "autoIncrement": true,
