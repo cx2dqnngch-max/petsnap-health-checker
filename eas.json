@@ -48,7 +48,8 @@
       },
       "env": {
         "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_LPfOpOJxjyRDYXmhPTfasrTPNAu"
-      }
+      },
+      "resourceClass": "medium"
     },
     "production-apk": {
       "extends": "production",
