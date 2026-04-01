@@ -42,6 +42,7 @@
     },
     "production-ios": {
       "autoIncrement": true,
+      "image": "macos-sequoia-15.2-xcode-16.2",
       "ios": {
         "credentialsSource": "remote"
       },
