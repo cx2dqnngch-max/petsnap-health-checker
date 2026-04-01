@@ -163,6 +163,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
               <View style={styles.bestValueBadge}>
                 <Text style={styles.bestValueText}>BEST VALUE</Text>
               </View>
+              <Text style={[styles.planName, { color: textColor }]}>Premium Annual</Text>
               <Text style={[styles.planPrice, { color: textColor }]}>{yearlyPrice}</Text>
               <Text style={[styles.planPeriod, { color: textSec }]}>per year</Text>
               <Text style={[styles.planNote, { color: Colors.primary }]}>Save over 30%</Text>
@@ -179,7 +180,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
               ]}
               onPress={() => { setSelectedPlan('monthly'); setStatusMsg(''); }}
             >
-              <Text style={[styles.planPrice, { color: textColor, marginTop: 8 }]}>{monthlyPrice}</Text>
+              <Text style={[styles.planName, { color: textColor }]}>Premium Monthly</Text>
+              <Text style={[styles.planPrice, { color: textColor }]}>{monthlyPrice}</Text>
               <Text style={[styles.planPeriod, { color: textSec }]}>per month</Text>
               <Text style={[styles.planNote, { color: textSec }]}>Cancel anytime</Text>
             </Pressable>
@@ -290,7 +292,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
       color: '#fff',
       letterSpacing: 0.5,
     },
-    planPrice: { fontSize: 22, fontFamily: 'Inter_700Bold', marginTop: 20 },
+    planName: { fontSize: 13, fontFamily: 'Inter_600SemiBold', marginTop: 16, letterSpacing: 0.3, textTransform: 'uppercase' },
+    planPrice: { fontSize: 22, fontFamily: 'Inter_700Bold', marginTop: 2 },
     planPeriod: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 2 },
     planNote: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 6, textAlign: 'center' },
     subscribeBtn: { marginHorizontal: 16, marginTop: 8, borderRadius: 16, overflow: 'hidden' },
