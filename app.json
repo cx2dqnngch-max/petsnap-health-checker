@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.petsnap.healthchecker",
-      "buildNumber": "36",
+      "buildNumber": "37",
       "infoPlist": {
         "NSCameraUsageDescription": "PetSnap uses the camera to take photos of your pet's symptoms for health analysis.",
         "NSPhotoLibraryUsageDescription": "PetSnap accesses your photo library to select images of your pet's symptoms.",
