@@ -39,7 +39,8 @@
         "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_rUpYppRKQLklLXIvOkNrYxeTWIZ",
         "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_LPfOpOJxjyRDYXmhPTfasrTPNAu"
       },
-      "resourceClass": "medium"
+      "resourceClass": "medium",
+      "image": "macos-sequoia-15.2-xcode-16.2"
     },
     "production-ios": {
       "autoIncrement": true,
@@ -49,7 +50,8 @@
       "env": {
         "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_LPfOpOJxjyRDYXmhPTfasrTPNAu"
       },
-      "resourceClass": "medium"
+      "resourceClass": "medium",
+      "image": "macos-sequoia-15.2-xcode-16.2"
     },
     "production-apk": {
       "extends": "production",
