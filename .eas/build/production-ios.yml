@@ -1,0 +1,11 @@
+build:
+  name: Production iOS Build
+  runs-on: macos-sequoia-15.2-xcode-16.2
+  steps:
+    - eas/checkout
+    - eas/install_node_modules
+    - eas/resolve_apple_team_id_from_credentials:
+        inputs:
+          apple_team_id: M57PLQ6DQW
+    - eas/configure_ios_credentials
+    - eas/run_fastlane
