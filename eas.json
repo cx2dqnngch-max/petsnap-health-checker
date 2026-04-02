@@ -42,6 +42,7 @@
     },
     "production-ios": {
       "autoIncrement": true,
+      "config": ".eas/build/production-ios.yml",
       "ios": {
         "credentialsSource": "remote"
       },
