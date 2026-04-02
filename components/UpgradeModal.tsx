@@ -187,6 +187,17 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
             </Pressable>
           </View>
 
+          <View style={styles.agreeRow}>
+            <Text style={[styles.agreeText, { color: textSec }]}>By subscribing you agree to our </Text>
+            <Pressable onPress={() => Linking.openURL(TERMS_OF_USE_URL)} hitSlop={8}>
+              <Text style={[styles.agreeLink, { color: Colors.primary }]}>Terms of Use</Text>
+            </Pressable>
+            <Text style={[styles.agreeText, { color: textSec }]}> and </Text>
+            <Pressable onPress={() => Linking.openURL(PRIVACY_POLICY_URL)} hitSlop={8}>
+              <Text style={[styles.agreeLink, { color: Colors.primary }]}>Privacy Policy</Text>
+            </Pressable>
+          </View>
+
           <Pressable
             onPress={handleSubscribe}
             disabled={isPurchasing}
@@ -335,6 +346,24 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
     legalSep: {
       fontSize: 12,
       fontFamily: 'Inter_400Regular',
+    },
+    agreeRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginHorizontal: 16,
+      marginBottom: 10,
+      marginTop: 4,
+    },
+    agreeText: {
+      fontSize: 12,
+      fontFamily: 'Inter_400Regular',
+    },
+    agreeLink: {
+      fontSize: 12,
+      fontFamily: 'Inter_600SemiBold',
+      textDecorationLine: 'underline',
     },
   });
   
