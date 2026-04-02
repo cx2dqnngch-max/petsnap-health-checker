@@ -42,7 +42,6 @@
     },
     "production-ios": {
       "autoIncrement": true,
-      "config": "production-ios.yml",
       "ios": {
         "credentialsSource": "remote"
       },
