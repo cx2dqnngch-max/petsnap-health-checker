@@ -43,7 +43,8 @@
     "production-ios": {
       "autoIncrement": true,
       "ios": {
-        "credentialsSource": "remote"
+        "credentialsSource": "remote",
+        "image": "macos-sequoia-15.6-xcode-26.0"
       },
       "env": {
         "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_LPfOpOJxjyRDYXmhPTfasrTPNAu"
