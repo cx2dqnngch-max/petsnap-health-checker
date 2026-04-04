@@ -12,8 +12,8 @@ export function DisclaimerBanner({ style }: Props) {
     <View style={[styles.container, style]}>
       <Ionicons name="warning" size={18} color={Colors.warning} style={{ marginTop: 1 }} />
       <Text style={styles.text}>
-        <Text style={styles.bold}>Informational ONLY — not a veterinary diagnosis.</Text>
-        {' '}Always consult a licensed vet for any concerning symptoms. Based on Merck Veterinary Manual, PetMD & ASPCA guidelines.
+        <Text style={styles.bold}>For informational purposes only — not a veterinary diagnosis.</Text>
+        {' '}Always consult a licensed veterinarian before making any decisions about your pet's health. Do not rely on this app as a substitute for professional veterinary care.
       </Text>
     </View>
   );
