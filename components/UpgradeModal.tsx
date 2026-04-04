@@ -17,8 +17,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
   import { Colors } from '@/constants/colors';
   import { useSubscription } from '@/lib/revenuecat';
 
-  const PRIVACY_POLICY_URL = 'https://ce900f1a-4dec-492e-ab5b-fad7b17c262e-00-bzc816ghf0ec.kirk.replit.dev/api/privacy';
-  const TERMS_OF_USE_URL = 'https://ce900f1a-4dec-492e-ab5b-fad7b17c262e-00-bzc816ghf0ec.kirk.replit.dev/api/terms';
+  const PRIVACY_POLICY_URL = 'https://cx2dqnngch-max.github.io/petsnap-health-checker/privacy.html';
+  const TERMS_OF_USE_URL = 'https://cx2dqnngch-max.github.io/petsnap-health-checker/terms.html';
 
   const BENEFITS = [
     { icon: 'infinity', label: 'Unlimited scans every month' },
