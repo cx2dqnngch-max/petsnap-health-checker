@@ -50,12 +50,16 @@ import {
             </View>
             <Text style={safetyStyles.title}>Important Information</Text>
             <Text style={safetyStyles.body}>
-              PetSnap provides educational pet wellness information only. It does not evaluate health conditions or provide medical advice.{'
+                {'PetSnap provides educational pet wellness information only. It does not evaluate health conditions or provide medical advice.'}
+                {'
 
-'}Always consult a licensed veterinarian for medical concerns.{'
+'}
+                {'Always consult a licensed veterinarian for medical concerns.'}
+                {'
 
-'}This information is educational only and is not veterinary advice.
-            </Text>
+'}
+                {'This information is educational only and is not veterinary advice.'}
+              </Text>
             <Pressable
               onPress={onAccept}
               style={({ pressed }) => [safetyStyles.button, { opacity: pressed ? 0.85 : 1 }]}
