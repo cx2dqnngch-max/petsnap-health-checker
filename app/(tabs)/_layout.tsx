@@ -52,14 +52,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="scan"
         options={{
-          title: 'Snap & Scan',
+          title: 'Log',
           tabBarIcon: ({ color }) => <MaterialCommunityIcons name="camera-iris" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
-          title: 'History',
+          title: 'Observations',
           tabBarIcon: ({ color }) => <Feather name="clock" size={22} color={color} />,
         }}
       />
