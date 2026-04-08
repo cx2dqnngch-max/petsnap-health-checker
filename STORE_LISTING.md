@@ -1,4 +1,4 @@
-# PetSnap Health Checker — Store Listing Copy
+# PetSnap Health Checker is a pet wellness education and observation journal designed to help pet owners organize notes and learn general pet care information between veterinary visits.
 
 ## App Name (max 30 chars)
 PetSnap Health Checker
@@ -41,7 +41,7 @@ Health & Fitness (or Medical)
 Everyone
 
 ## Tags / Keywords
-pet health, dog symptom checker, cat symptoms, vet advice, animal health, pet care, dog health, pet diagnosis, pet medical, merck veterinary
+pet health, dog symptom checker, cat symptoms, vet advice, animal health, pet care, dog health, pet inform about, pet medical, merck veterinary
 
 ## Privacy Policy
 Required — host a simple one at a URL like https://yoursite.com/privacy
@@ -57,7 +57,7 @@ Pill: "Powered by Merck Veterinary Manual"
 Caption: "Point your camera. Get vet-grade answers in seconds."
 
 ### Screenshot 2 — Results screen
-Headline: "Instant AI Diagnosis from Trusted Sources"
+Headline: "Instant AI inform about from Trusted Sources"
 Pill: "Real Vet Advice — No Appointment Needed"
 Caption: "Conditions cross-referenced with PetMD & ASPCA databases"
 
