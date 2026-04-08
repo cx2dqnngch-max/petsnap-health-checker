@@ -112,10 +112,8 @@ export default function ScanScreen() {
     const pet = pets.find(p => p.id === selectedPetId);
     const analysis = analyzeSymptoms(selectedArea, checkedSymptoms, sliderValues, pet?.ageYears, pet?.breed, pet?.weightLbs);
 
-    const severityOrder: Record<string, number> = { mild: 1, moderate: 2, severe: 3, emergency: 4 };
-    const topSeverity = analysis.conditions.reduce<'mild' | 'moderate' | 'severe' | 'emergency'>((max, c) => {
-      return (severityOrder[c.severity] ?? 0) > (severityOrder[max] ?? 0) ? c.severity : max;
-    }, analysis.isEmergency ? 'emergency' : 'mild');
+    // Educational mode — no severity ranking
+    const topSeverity: 'mild' | 'moderate' | 'severe' | 'emergency' = analysis.isEmergency ? 'emergency' : 'mild';
 
     const matchedKey = Object.keys(SYMPTOM_DATABASE).find(k => {
       if (!k.startsWith(selectedArea)) return false;
@@ -125,22 +123,10 @@ export default function ScanScreen() {
 
     const matchedEntry = matchedKey ? SYMPTOM_DATABASE[matchedKey] : null;
 
-    // Merge age/weight-adjusted probabilities from analyzeSymptoms with real advice from SYMPTOM_DATABASE
+    // Educational topics — no probability scoring
     const fullConditions = matchedEntry
-      ? matchedEntry.conditions.map((dbCond, i) => {
-          const adjusted = analysis.conditions.find(a => a.name === dbCond.name);
-          return {
-            ...dbCond,
-            probability: adjusted?.probability ?? dbCond.probability,
-          };
-        })
-      : analysis.conditions.map(c => ({
-          name: c.name,
-          probability: c.probability,
-          severity: c.severity as 'mild' | 'moderate' | 'severe' | 'emergency',
-          advice: `Consult your veterinarian about ${c.name} for an accurate diagnosis and treatment plan.`,
-          whenToSeeVet: 'Consult your veterinarian if symptoms persist or worsen.',
-        }));
+      ? matchedEntry.conditions.map(dbCond => ({ ...dbCond, probability: 0 }))
+      : [];
 
     const savedResult = await addScanResult({
       petId: selectedPetId,
