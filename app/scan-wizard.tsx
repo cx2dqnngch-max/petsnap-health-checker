@@ -150,7 +150,7 @@ export default function ScanScreen() {
       symptoms: checkedSymptoms,
       conditions: fullConditions,
       overallSeverity: analysis.isEmergency ? 'emergency' : topSeverity,
-      healthScore: analysis.healthScore,
+      healthScore: 100,
       homeCare: analysis.homeCare,
       vetTips: analysis.vetTips,
     });
@@ -174,8 +174,8 @@ export default function ScanScreen() {
         <LinearGradient colors={[Colors.primary, Colors.accent]} style={styles.analyzingGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
           <Animated.View entering={FadeIn} style={styles.analyzingContent}>
             <MaterialCommunityIcons name="paw" size={80} color="rgba(255,255,255,0.9)" />
-            <Text style={styles.analyzingTitle}>Analyzing Symptoms...</Text>
-            <Text style={styles.analyzingSubtitle}>Checking against veterinary databases</Text>
+            <Text style={styles.analyzingTitle}>Creating your wellness log...</Text>
+            <Text style={styles.analyzingSubtitle}>Gathering educational wellness information</Text>
             <ActivityIndicator size="large" color="rgba(255,255,255,0.8)" style={{ marginTop: 20 }} />
           </Animated.View>
         </LinearGradient>
