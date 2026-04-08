@@ -333,69 +333,57 @@ export const VET_TIPS = [
 // ─── Analysis Function ────────────────────────────────────────────────────────
 
 export function analyzeSymptoms(
-  area: BodyArea,
-  checkedSymptoms: string[],
-  sliderValues: Record<string, number>,
-  petAge?: number,
-  petBreed?: string,
-  petWeightLbs?: number,
-): {
-  conditions: Array<{ name: string; probability: number; severity: 'mild' | 'moderate' | 'severe' | 'emergency' }>;
-  isEmergency: boolean;
-  healthScore: number;
-  homeCare: string[];
-  vetTips: string[];
-} {
-  const emergencySymptoms = ['breathing_difficulty', 'collapse', 'seizure', 'bleeding', 'pale_gums', 'non_weight_bearing'];
-  const hasEmergency = checkedSymptoms.some(s => emergencySymptoms.includes(s));
+    area: BodyArea,
+    checkedSymptoms: string[],
+    sliderValues: Record<string, number>,
+    petAge?: number,
+    petBreed?: string,
+    petWeightLbs?: number,
+  ): {
+    conditions: Array<{ name: string; probability: number; severity: 'mild' | 'moderate' | 'severe' | 'emergency' }>;
+    isEmergency: boolean;
+    healthScore: number;
+    homeCare: string[];
+    vetTips: string[];
+  } {
+    const emergencySymptoms = ['breathing_difficulty', 'collapse', 'seizure', 'bleeding', 'pale_gums', 'non_weight_bearing'];
+    const hasEmergency = checkedSymptoms.some(s => emergencySymptoms.includes(s));
 
-  let matchedEntry: SymptomEntry | null = null;
-  let bestScore = 0;
+    let matchedEntry: SymptomEntry | null = null;
+    let bestScore = 0;
 
-  for (const [key, entry] of Object.entries(SYMPTOM_DATABASE)) {
-    if (!key.startsWith(area)) continue;
-    const keyParts = key.split('_').slice(1);
-    const matchCount = checkedSymptoms.filter(s => keyParts.some(kp => s.includes(kp))).length;
-    if (matchCount > bestScore) {
-      bestScore = matchCount;
-      matchedEntry = entry;
+    for (const [key, entry] of Object.entries(SYMPTOM_DATABASE)) {
+      if (!key.startsWith(area)) continue;
+      const keyParts = key.split('_').slice(1);
+      const matchCount = checkedSymptoms.filter(s => keyParts.some(kp => s.includes(kp))).length;
+      if (matchCount > bestScore) {
+        bestScore = matchCount;
+        matchedEntry = entry;
+      }
     }
+
+    if (!matchedEntry) {
+      const key = Object.keys(SYMPTOM_DATABASE).find(k => k.startsWith(area));
+      if (key) matchedEntry = SYMPTOM_DATABASE[key]!;
+    }
+
+    if (!matchedEntry) {
+      return { conditions: [], isEmergency: hasEmergency, healthScore: 100, homeCare: [], vetTips: [] };
+    }
+
+    // Return conditions without probability adjustments — shown as educational topics only
+    const conditions = matchedEntry.conditions.map(c => ({
+      name: c.name,
+      probability: 0, // not used for display — educational mode only
+      severity: c.severity,
+    }));
+
+    return {
+      conditions,
+      isEmergency: hasEmergency || !!matchedEntry.isEmergency,
+      healthScore: 100, // not used for display — wellness log only
+      homeCare: matchedEntry.homeCare,
+      vetTips: matchedEntry.vetTips,
+    };
   }
-
-  if (!matchedEntry) {
-    const key = Object.keys(SYMPTOM_DATABASE).find(k => k.startsWith(area));
-    if (key) matchedEntry = SYMPTOM_DATABASE[key]!;
-  }
-
-  if (!matchedEntry) {
-    return { conditions: [], isEmergency: hasEmergency, healthScore: 75, homeCare: [], vetTips: [] };
-  }
-
-  const isLargeDog = petWeightLbs != null && petWeightLbs > 66; // 66 lbs ≈ 30 kg
-  const isSenior = petAge != null && petAge >= 7;
-
-  const conditions = matchedEntry.conditions.map(c => {
-    let prob = c.probability;
-    if (isSenior) prob = Math.min(95, prob + 5);
-    if (isLargeDog && (area === 'gait')) prob = Math.min(95, prob + 10);
-    return { name: c.name, probability: prob, severity: c.severity };
-  });
-
-  const severityScore: Record<string, number> = { mild: 90, moderate: 72, severe: 50, emergency: 20 };
-  const worstSeverity = conditions.reduce(
-    (worst, c) => (severityScore[c.severity] ?? 90) < (severityScore[worst] ?? 90) ? c.severity : worst,
-    'mild' as string,
-  );
-
-  const durationPenalty = sliderValues['duration'] ? Math.min(20, sliderValues['duration'] * 1.5) : 0;
-  const baseScore = severityScore[worstSeverity] ?? 75;
-  const healthScore = Math.max(10, Math.round(baseScore - durationPenalty + (hasEmergency ? -30 : 0)));
-
-  return {
-    conditions,
-    isEmergency: hasEmergency || !!matchedEntry.isEmergency,
-    healthScore,
-    homeCare: matchedEntry.homeCare,
-    vetTips: matchedEntry.vetTips,
-  };
-}
+  
