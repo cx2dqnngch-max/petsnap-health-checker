@@ -82,7 +82,7 @@ export default function HomeScreen() {
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>
-              {selectedPet ? `How's ${selectedPet.name} today?` : 'Good to see you!'}
+              {selectedPet ? `${selectedPet.name}'s Wellness Journal` : 'Good to see you!'}
             </Text>
             <Text style={styles.greetingSubtitle}>
               {selectedPet
@@ -133,10 +133,10 @@ export default function HomeScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.snapButtonTitle}>
-                {(freeScansLeft <= 0 && !isSubscribed) ? 'Scans Locked — Upgrade' : 'Snap a Symptom'}
+                {(freeScansLeft <= 0 && !isSubscribed) ? 'Upgrade to Continue' : 'Log an Observation'}
               </Text>
               <Text style={styles.snapButtonSub}>
-                {(freeScansLeft <= 0 && !isSubscribed) ? 'Upgrade to unlock unlimited scans' : 'Start 5-step health analysis'}
+                {(freeScansLeft <= 0 && !isSubscribed) ? 'Upgrade to unlock unlimited observation logs' : 'Record wellness observations'}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={22} color="rgba(255,255,255,0.8)" />
