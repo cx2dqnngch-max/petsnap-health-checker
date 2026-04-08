@@ -15,7 +15,7 @@ const SEVERITY_LABELS = {
   mild: 'Mild',
   moderate: 'Moderate',
   severe: 'Severe',
-  emergency: 'Emergency',
+  emergency: 'Seek Vet',
 };
 
 interface Props {
