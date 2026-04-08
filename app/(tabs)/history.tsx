@@ -50,8 +50,8 @@ export default function HistoryScreen() {
   return (
     <View style={[styles.container, { backgroundColor: bg }]}>
       <View style={[styles.header, { paddingTop: topPad + 16 }]}>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Scan History</Text>
-        <Text style={[styles.headerCount, { color: textSec }]}>{scanHistory.length} records</Text>
+        <Text style={[styles.headerTitle, { color: textColor }]}>Observation History</Text>
+        <Text style={[styles.headerCount, { color: textSec }]}>{scanHistory.length} observation{scanHistory.length === 1 ? '' : 's'} recorded</Text>
       </View>
 
       <ScrollView
