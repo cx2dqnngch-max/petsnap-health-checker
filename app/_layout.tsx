@@ -49,17 +49,18 @@ import {
               <Ionicons name="information-circle" size={40} color={Colors.primary} />
             </View>
             <Text style={safetyStyles.title}>Important Information</Text>
-            <Text style={safetyStyles.body}>
-                {'PetSnap provides educational pet wellness information only. It does not evaluate health conditions or provide medical advice.'}
-                {'
-
-'}
-                {'Always consult a licensed veterinarian for medical concerns.'}
-                {'
-
-'}
-                {'This information is educational only and is not veterinary advice.'}
+            <View>
+              <Text style={safetyStyles.body}>
+                PetSnap provides educational pet wellness information only.
+                It does not evaluate health conditions or provide medical advice.
               </Text>
+              <Text style={[safetyStyles.body, {marginTop: 10}]}>
+                Always consult a licensed veterinarian for medical concerns.
+              </Text>
+              <Text style={[safetyStyles.body, {marginTop: 10}]}>
+                This information is educational only and is not veterinary advice.
+              </Text>
+            </View>
             <Pressable
               onPress={onAccept}
               style={({ pressed }) => [safetyStyles.button, { opacity: pressed ? 0.85 : 1 }]}
