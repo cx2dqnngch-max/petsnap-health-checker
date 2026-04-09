@@ -312,7 +312,7 @@
         'Plaque can begin accumulating on pet teeth within hours of cleaning; daily brushing is the gold standard.',
         'Small breed dogs and cats are particularly discussed in dental literature for higher rates of dental disease.',
         'Dental disease can have systemic effects — veterinary literature links severe oral bacteria to cardiovascular and kidney health discussions.',
-        'Raw hides, dental chews, and water additives are commonly discussed; their effectiveness varies and some carry risks.',
+        'Raw hides, dental chews, and water additives are commonly discussed; their effectiveness varies and veterinarians have different recommendations.',
         'Pets rarely show obvious pain from dental disease — routine veterinary exams are the primary way disease is detected.',
       ],
       whenVetsRecommendVisit: [
