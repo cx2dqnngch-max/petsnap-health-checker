@@ -1,552 +1,372 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import React, { useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-  useColorScheme,
-} from 'react-native';
-import Animated, { FadeIn, FadeInDown, FadeInRight, SlideInRight } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+  import * as Haptics from 'expo-haptics';
+  import * as ImagePicker from 'expo-image-picker';
+  import { LinearGradient } from 'expo-linear-gradient';
+  import { router } from 'expo-router';
+  import React, { useState } from 'react';
+  import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+    useColorScheme,
+  } from 'react-native';
+  import Animated, { FadeInDown } from 'react-native-reanimated';
+  import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors } from '@/constants/colors';
-import { usePets } from '@/context/PetContext';
-import { BODY_AREAS, SYMPTOM_DATABASE, SYMPTOM_QUESTIONS, analyzeSymptoms, type BodyArea } from '@/data/symptomDatabase';
-import { DisclaimerBanner } from '@/components/DisclaimerBanner';
-import { UpgradeModal } from '@/components/UpgradeModal';
-import { useSubscription } from '@/lib/revenuecat';
+  import { Colors } from '@/constants/colors';
+  import { usePets } from '@/context/PetContext';
+  import { BODY_AREAS, OBSERVATION_PROMPTS, getEducationalContent, type BodyArea } from '@/data/symptomDatabase';
+  import { DisclaimerBanner } from '@/components/DisclaimerBanner';
+  import { UpgradeModal } from '@/components/UpgradeModal';
+  import { useSubscription } from '@/lib/revenuecat';
 
-const TOTAL_STEPS = 5;
+  const TOTAL_STEPS = 4;
 
-export default function ScanScreen() {
-  const { pets, addScanResult, freeScansLeft, monthlyScansUsed, incrementMonthlyScans } = usePets();
-  const { isSubscribed } = useSubscription();
-  const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const topPad = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPad = Platform.OS === 'web' ? 34 : Math.max(insets.bottom, 24);
+  export default function ScanScreen() {
+    const { pets, addScanResult, freeScansLeft, monthlyScansUsed, incrementMonthlyScans } = usePets();
+    const { isSubscribed } = useSubscription();
+    const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+    const topPad = Platform.OS === 'web' ? 67 : insets.top;
+    const bottomPad = Platform.OS === 'web' ? 34 : Math.max(insets.bottom, 24);
 
-  const [step, setStep] = useState(1);
-  const [selectedPetId, setSelectedPetId] = useState<string | null>(pets[0]?.id ?? null);
-  const [selectedArea, setSelectedArea] = useState<BodyArea | null>(null);
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [checkedSymptoms, setCheckedSymptoms] = useState<string[]>([]);
-  const [sliderValues, setSliderValues] = useState<Record<string, number>>({});
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showUpgrade, setShowUpgrade] = useState(false);
+    const [step, setStep] = useState(1);
+    const [selectedPetId, setSelectedPetId] = useState<string | null>(pets[0]?.id ?? null);
+    const [selectedArea, setSelectedArea] = useState<BodyArea | null>(null);
+    const [photoUri, setPhotoUri] = useState<string | null>(null);
+    const [checkedObservations, setCheckedObservations] = useState<string[]>([]);
+    const [isSaving, setIsSaving] = useState(false);
+    const [showUpgrade, setShowUpgrade] = useState(false);
 
-  const bg = isDark ? Colors.dark.background : Colors.background;
-  const surface = isDark ? Colors.dark.surface : Colors.surface;
-  const textColor = isDark ? Colors.dark.text : Colors.text;
-  const textSec = isDark ? Colors.dark.textSecondary : Colors.textSecondary;
-  const border = isDark ? Colors.dark.border : Colors.border;
+    const bg = isDark ? Colors.dark.background : Colors.background;
+    const surface = isDark ? Colors.dark.surface : Colors.surface;
+    const textColor = isDark ? Colors.dark.text : Colors.text;
+    const textSec = isDark ? Colors.dark.textSecondary : Colors.textSecondary;
+    const border = isDark ? Colors.dark.border : Colors.border;
 
-  const selectedPet = pets.find(p => p.id === selectedPetId);
+    const handleBack = () => {
+      if (step === 1) { router.back(); return; }
+      setStep(s => s - 1);
+    };
 
-  const goNext = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (step < TOTAL_STEPS) setStep(step + 1);
-  };
+    const handleNext = () => {
+      if (step === 1 && !selectedPetId) {
+        Alert.alert('Select a pet', 'Please select a pet to log an observation for.');
+        return;
+      }
+      if (step === 2 && !selectedArea) {
+        Alert.alert('Select an area', 'Please select a body area to log observations about.');
+        return;
+      }
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setStep(s => s + 1);
+    };
 
-  const goBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (step > 1) setStep(step - 1);
-    else router.back();
-  };
+    const handleSave = async () => {
+      if (!selectedPetId || !selectedArea) return;
+      if (freeScansLeft <= 0 && !isSubscribed) {
+        setShowUpgrade(true);
+        return;
+      }
+      setIsSaving(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-  const canProceed = () => {
-    if (step === 1) return !!selectedPetId;
-    if (step === 2) return !!selectedArea;
-    if (step === 3) return true;
-    if (step === 4) return true;
-    return true;
-  };
+      const pet = pets.find(p => p.id === selectedPetId);
+      const educationalTopic = getEducationalContent(selectedArea);
+      const areaLabel = BODY_AREAS.find(b => b.id === selectedArea)?.label ?? selectedArea;
 
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Camera needed', 'Please allow camera access in settings to take a photo.');
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.8, allowsEditing: true });
-    if (!result.canceled && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri);
-    }
-  };
+      const savedResult = await addScanResult({
+        petId: selectedPetId,
+        petName: pet?.name ?? '',
+        bodyArea: areaLabel,
+        photoUri: photoUri ?? undefined,
+        observations: checkedObservations,
+        educationalTopic,
+      });
 
-  const pickPhoto = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Photo access needed', 'Please allow photo library access to select a photo.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.8, allowsEditing: true });
-    if (!result.canceled && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri);
-    }
-  };
+      await incrementMonthlyScans();
+      setIsSaving(false);
+      router.replace({ pathname: '/results', params: { id: savedResult.id } });
+    };
 
-  const handleAnalyze = async () => {
-    if (!selectedPetId || !selectedArea) return;
-    if (freeScansLeft <= 0 && !isSubscribed) {
-      setShowUpgrade(true);
-      return;
-    }
-    setIsAnalyzing(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    const takePhoto = async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Camera access needed', 'Please allow camera access in your device settings.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({ quality: 0.7, allowsEditing: true, aspect: [1, 1] });
+      if (!result.canceled) setPhotoUri(result.assets[0].uri);
+    };
 
-    await new Promise(r => setTimeout(r, 2500));
+    const pickPhoto = async () => {
+      const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.7, allowsEditing: true, aspect: [1, 1] });
+      if (!result.canceled) setPhotoUri(result.assets[0].uri);
+    };
 
-    const pet = pets.find(p => p.id === selectedPetId);
-    const analysis = analyzeSymptoms(selectedArea, checkedSymptoms, sliderValues, pet?.ageYears, pet?.breed, pet?.weightLbs);
+    const toggleObservation = (id: string) => {
+      setCheckedObservations(prev =>
+        prev.includes(id) ? prev.filter(o => o !== id) : [...prev, id]
+      );
+    };
 
-    // Educational mode — no severity ranking
-    const topSeverity: 'mild' | 'moderate' | 'severe' | 'emergency' = analysis.isEmergency ? 'emergency' : 'mild';
+    const progressPct = ((step - 1) / (TOTAL_STEPS - 1)) * 100;
 
-    const matchedKey = Object.keys(SYMPTOM_DATABASE).find(k => {
-      if (!k.startsWith(selectedArea)) return false;
-      const keyParts = k.split('_').slice(1);
-      return checkedSymptoms.some(s => keyParts.some(kp => s.includes(kp)));
-    }) ?? Object.keys(SYMPTOM_DATABASE).find(k => k.startsWith(selectedArea));
-
-    const matchedEntry = matchedKey ? SYMPTOM_DATABASE[matchedKey] : null;
-
-    // Educational topics — no probability scoring
-    const fullConditions = matchedEntry
-      ? matchedEntry.conditions.map(dbCond => ({ ...dbCond, probability: 0 }))
-      : [];
-
-    const savedResult = await addScanResult({
-      petId: selectedPetId,
-      petName: pet?.name ?? '',
-      bodyArea: BODY_AREAS.find(b => b.id === selectedArea)?.label ?? selectedArea,
-      photoUri: photoUri ?? undefined,
-      symptoms: checkedSymptoms,
-      conditions: fullConditions,
-      overallSeverity: analysis.isEmergency ? 'emergency' : topSeverity,
-      healthScore: 100,
-      homeCare: analysis.homeCare,
-      vetTips: analysis.vetTips,
-    });
-
-    await incrementMonthlyScans();
-    setIsAnalyzing(false);
-    router.replace({ pathname: '/results', params: { id: savedResult.id } });
-  };
-
-  const toggleSymptom = (id: string) => {
-    setCheckedSymptoms(prev =>
-      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
-    );
-  };
-
-  const progressWidth = `${(step / TOTAL_STEPS) * 100}%` as any;
-
-  if (isAnalyzing) {
     return (
-      <View style={[styles.analyzingContainer, { backgroundColor: bg }]}>
-        <LinearGradient colors={[Colors.primary, Colors.accent]} style={styles.analyzingGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-          <Animated.View entering={FadeIn} style={styles.analyzingContent}>
-            <MaterialCommunityIcons name="paw" size={80} color="rgba(255,255,255,0.9)" />
-            <Text style={styles.analyzingTitle}>Creating your wellness log...</Text>
-            <Text style={styles.analyzingSubtitle}>Gathering educational wellness information</Text>
-            <ActivityIndicator size="large" color="rgba(255,255,255,0.8)" style={{ marginTop: 20 }} />
-          </Animated.View>
+      <View style={{ flex: 1, backgroundColor: bg }}>
+        {/* Header */}
+        <LinearGradient
+          colors={[Colors.primaryDark, Colors.primary]}
+          style={[styles.header, { paddingTop: topPad + 8 }]}
+        >
+          <Pressable onPress={handleBack} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={22} color="#fff" />
+          </Pressable>
+          <View style={{ flex: 1, marginHorizontal: 12 }}>
+            <Text style={styles.headerTitle}>Wellness Journal Entry</Text>
+            <Text style={styles.headerSub}>Step {step} of {TOTAL_STEPS}</Text>
+          </View>
+          <Text style={styles.stepBadge}>{step}/{TOTAL_STEPS}</Text>
         </LinearGradient>
+
+        {/* Progress bar */}
+        <View style={[styles.progressTrack, { backgroundColor: border }]}>
+          <Animated.View style={[styles.progressFill, { width: progressPct + '%', backgroundColor: Colors.primary }]} />
+        </View>
+
+        <DisclaimerBanner />
+
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: bottomPad + 80 }}>
+
+          {/* STEP 1 — Select Pet */}
+          {step === 1 && (
+            <Animated.View entering={FadeInDown.duration(300)}>
+              <Text style={[styles.stepTitle, { color: textColor }]}>Which pet is this entry for?</Text>
+              {pets.length === 0 ? (
+                <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
+                  <Text style={[styles.emptyText, { color: textSec }]}>No pets added yet. Add a pet first.</Text>
+                  <Pressable onPress={() => router.push('/add-pet')} style={[styles.addPetBtn, { backgroundColor: Colors.primary }]}>
+                    <Text style={styles.addPetBtnText}>Add a Pet</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                pets.map(pet => (
+                  <Pressable
+                    key={pet.id}
+                    onPress={() => { setSelectedPetId(pet.id); Haptics.selectionAsync(); }}
+                    style={[styles.petCard, { backgroundColor: surface, borderColor: selectedPetId === pet.id ? Colors.primary : border }]}
+                  >
+                    <View style={[styles.petAvatar, { backgroundColor: Colors.primary + '22' }]}>
+                      <Text style={{ fontSize: 24 }}>{pet.type === 'dog' ? '🐶' : '🐱'}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.petName, { color: textColor }]}>{pet.name}</Text>
+                      <Text style={[styles.petBreed, { color: textSec }]}>{pet.breed} · {pet.ageYears}y</Text>
+                    </View>
+                    {selectedPetId === pet.id && <Ionicons name="checkmark-circle" size={22} color={Colors.primary} />}
+                  </Pressable>
+                ))
+              )}
+            </Animated.View>
+          )}
+
+          {/* STEP 2 — Select Body Area */}
+          {step === 2 && (
+            <Animated.View entering={FadeInDown.duration(300)}>
+              <Text style={[styles.stepTitle, { color: textColor }]}>What area are you logging about?</Text>
+              <Text style={[styles.stepSubtitle, { color: textSec }]}>
+                Your selection is used to show you relevant pet care education. No analysis is performed.
+              </Text>
+              <View style={styles.areaGrid}>
+                {BODY_AREAS.map(area => (
+                  <Pressable
+                    key={area.id}
+                    onPress={() => { setSelectedArea(area.id); Haptics.selectionAsync(); }}
+                    style={[styles.areaCard, { backgroundColor: surface, borderColor: selectedArea === area.id ? Colors.primary : border }]}
+                  >
+                    <Ionicons name={area.icon as any} size={28} color={selectedArea === area.id ? Colors.primary : textSec} />
+                    <Text style={[styles.areaLabel, { color: selectedArea === area.id ? Colors.primary : textColor }]}>{area.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </Animated.View>
+          )}
+
+          {/* STEP 3 — Add photo + observations */}
+          {step === 3 && selectedArea && (
+            <Animated.View entering={FadeInDown.duration(300)}>
+              <Text style={[styles.stepTitle, { color: textColor }]}>Add a photo (optional)</Text>
+              <Text style={[styles.stepSubtitle, { color: textSec }]}>
+                Photos are stored locally on your device for your personal wellness journal only.
+              </Text>
+
+              {photoUri ? (
+                <View style={styles.photoWrapper}>
+                  <Image source={{ uri: photoUri }} style={styles.photo} />
+                  <Pressable onPress={() => setPhotoUri(null)} style={styles.removePhotoBtn}>
+                    <Ionicons name="close-circle" size={28} color={Colors.emergency} />
+                  </Pressable>
+                </View>
+              ) : (
+                <View style={styles.photoButtons}>
+                  <Pressable onPress={takePhoto} style={[styles.photoBtn, { backgroundColor: Colors.primary }]}>
+                    <Ionicons name="camera-outline" size={22} color="#fff" />
+                    <Text style={styles.photoBtnText}>Take Photo</Text>
+                  </Pressable>
+                  <Pressable onPress={pickPhoto} style={[styles.photoBtn, { backgroundColor: surface, borderWidth: 1, borderColor: border }]}>
+                    <Ionicons name="image-outline" size={22} color={textColor} />
+                    <Text style={[styles.photoBtnText, { color: textColor }]}>Choose Photo</Text>
+                  </Pressable>
+                </View>
+              )}
+
+              <Text style={[styles.sectionLabel, { color: textColor, marginTop: 24 }]}>
+                What did you notice? (optional — for your journal only)
+              </Text>
+              <Text style={[styles.noteText, { color: textSec }]}>
+                These observations are stored privately as personal notes. They are not analyzed or interpreted.
+              </Text>
+              {(OBSERVATION_PROMPTS[selectedArea] ?? []).map(obs => (
+                <Pressable
+                  key={obs}
+                  onPress={() => toggleObservation(obs)}
+                  style={[styles.observationRow, { backgroundColor: surface, borderColor: checkedObservations.includes(obs) ? Colors.primary : border }]}
+                >
+                  <Ionicons
+                    name={checkedObservations.includes(obs) ? 'checkbox' : 'square-outline'}
+                    size={22}
+                    color={checkedObservations.includes(obs) ? Colors.primary : textSec}
+                  />
+                  <Text style={[styles.observationText, { color: textColor }]}>{obs}</Text>
+                </Pressable>
+              ))}
+            </Animated.View>
+          )}
+
+          {/* STEP 4 — Confirm & save */}
+          {step === 4 && selectedArea && (
+            <Animated.View entering={FadeInDown.duration(300)}>
+              <Text style={[styles.stepTitle, { color: textColor }]}>Ready to save your journal entry?</Text>
+
+              <View style={[styles.summaryCard, { backgroundColor: surface, borderColor: border }]}>
+                <Text style={[styles.summaryLabel, { color: textSec }]}>Pet</Text>
+                <Text style={[styles.summaryValue, { color: textColor }]}>
+                  {pets.find(p => p.id === selectedPetId)?.name ?? '—'}
+                </Text>
+
+                <Text style={[styles.summaryLabel, { color: textSec, marginTop: 10 }]}>Area logged</Text>
+                <Text style={[styles.summaryValue, { color: textColor }]}>
+                  {BODY_AREAS.find(b => b.id === selectedArea)?.label ?? selectedArea}
+                </Text>
+
+                <Text style={[styles.summaryLabel, { color: textSec, marginTop: 10 }]}>Observations noted</Text>
+                <Text style={[styles.summaryValue, { color: textColor }]}>
+                  {checkedObservations.length === 0 ? 'None' : checkedObservations.join(', ')}
+                </Text>
+
+                {photoUri && (
+                  <>
+                    <Text style={[styles.summaryLabel, { color: textSec, marginTop: 10 }]}>Photo</Text>
+                    <Image source={{ uri: photoUri }} style={styles.summaryPhoto} />
+                  </>
+                )}
+              </View>
+
+              <View style={[styles.disclaimerBox, { backgroundColor: Colors.primary + '14', borderColor: Colors.primary + '44' }]}>
+                <Ionicons name="information-circle-outline" size={18} color={Colors.primary} />
+                <Text style={[styles.disclaimerText, { color: Colors.primary }]}>
+                  After saving, you will see general educational information about{' '}
+                  {BODY_AREAS.find(b => b.id === selectedArea)?.label}. This is not an assessment
+                  of your pet. Always consult a licensed veterinarian for any health concerns.
+                </Text>
+              </View>
+
+              <Pressable
+                onPress={handleSave}
+                disabled={isSaving}
+                style={[styles.saveBtn, { backgroundColor: Colors.primary, opacity: isSaving ? 0.7 : 1 }]}
+              >
+                {isSaving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
+                    <Text style={styles.saveBtnText}>Save Journal Entry</Text>
+                  </>
+                )}
+              </Pressable>
+            </Animated.View>
+          )}
+        </ScrollView>
+
+        {/* Bottom navigation */}
+        {step < TOTAL_STEPS && (
+          <View style={[styles.navBar, { backgroundColor: bg, borderTopColor: border, paddingBottom: bottomPad }]}>
+            <Pressable onPress={handleBack} style={[styles.navBtn, { borderColor: border }]}>
+              <Text style={[styles.navBtnText, { color: textColor }]}>Back</Text>
+            </Pressable>
+            <Pressable onPress={handleNext} style={[styles.navBtnPrimary, { backgroundColor: Colors.primary }]}>
+              <Text style={styles.navBtnPrimaryText}>Continue</Text>
+              <Ionicons name="arrow-forward" size={18} color="#fff" />
+            </Pressable>
+          </View>
+        )}
+
+        <UpgradeModal visible={showUpgrade} onClose={() => setShowUpgrade(false)} />
       </View>
     );
   }
 
-  return (
-    <View style={[styles.container, { backgroundColor: bg }]}>
-      <View style={[styles.headerBar, { paddingTop: topPad + 8 }]}>
-        <Pressable onPress={goBack} style={styles.backButton}>
-          <Ionicons name="close" size={24} color={textColor} />
-        </Pressable>
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={[styles.stepLabel, { color: textSec }]}>Step {step} of {TOTAL_STEPS}</Text>
-        </View>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <View style={[styles.progressBar, { backgroundColor: border }]}>
-        <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
-      </View>
-
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: bottomPad + 100 }} showsVerticalScrollIndicator={false}>
-        {step === 1 && (
-          <Animated.View entering={FadeInDown} style={styles.stepContent}>
-            <Text style={[styles.stepTitle, { color: textColor }]}>Select Pet</Text>
-            <Text style={[styles.stepSubtitle, { color: textSec }]}>Who are we checking today?</Text>
-
-            {pets.length === 0 ? (
-              <View style={[styles.noPetsCard, { backgroundColor: surface, borderColor: border }]}>
-                <MaterialCommunityIcons name="paw" size={48} color={Colors.primary} style={{ marginBottom: 12 }} />
-                <Text style={[styles.noPetsTitle, { color: textColor }]}>No pets added yet</Text>
-                <Text style={[styles.noPetsSubtitle, { color: textSec }]}>
-                  Add your pet's profile first so we can track their health over time.
-                </Text>
-                <Pressable
-                  onPress={() => { router.back(); router.push('/add-pet'); }}
-                  style={styles.addPetButton}
-                >
-                  <LinearGradient
-                    colors={[Colors.primary, Colors.accent]}
-                    style={styles.addPetButtonGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                  >
-                    <Ionicons name="add" size={20} color="#fff" />
-                    <Text style={styles.addPetButtonText}>Add a Pet</Text>
-                  </LinearGradient>
-                </Pressable>
-              </View>
-            ) : (
-              <View style={styles.petList}>
-                {pets.map(pet => (
-                  <Pressable
-                    key={pet.id}
-                    onPress={() => { Haptics.selectionAsync(); setSelectedPetId(pet.id); }}
-                    style={[styles.petOption, { backgroundColor: surface, borderColor: selectedPetId === pet.id ? Colors.primary : border, borderWidth: selectedPetId === pet.id ? 2 : 1 }]}
-                  >
-                    <LinearGradient
-                      colors={pet.type === 'cat' ? [Colors.accent, Colors.accentDark] : [Colors.primary, Colors.primaryDark]}
-                      style={styles.petOptionAvatar}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    >
-                      <MaterialCommunityIcons name={pet.type === 'cat' ? 'cat' : 'dog'} size={28} color="#fff" />
-                    </LinearGradient>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.petOptionName, { color: textColor }]}>{pet.name}</Text>
-                      <Text style={[styles.petOptionBreed, { color: textSec }]}>{pet.breed} · {pet.ageYears}y</Text>
-                    </View>
-                    {selectedPetId === pet.id && (
-                      <View style={styles.petOptionCheck}>
-                        <Ionicons name="checkmark" size={16} color="#fff" />
-                      </View>
-                    )}
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          </Animated.View>
-        )}
-
-        {step === 2 && (
-          <Animated.View entering={FadeInDown} style={styles.stepContent}>
-            <Text style={[styles.stepTitle, { color: textColor }]}>Choose Body Area</Text>
-            <Text style={[styles.stepSubtitle, { color: textSec }]}>Where did you notice the concern?</Text>
-            <View style={styles.areaGrid}>
-              {BODY_AREAS.map(area => (
-                <Pressable
-                  key={area.id}
-                  onPress={() => { Haptics.selectionAsync(); setSelectedArea(area.id); }}
-                  style={({ pressed }) => [
-                    styles.areaCard,
-                    { backgroundColor: surface, borderColor: selectedArea === area.id ? Colors.primary : border, opacity: pressed ? 0.85 : 1 },
-                    selectedArea === area.id && { backgroundColor: `${Colors.primary}15` },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name={area.icon as any}
-                    size={32}
-                    color={selectedArea === area.id ? Colors.primary : textSec}
-                  />
-                  <Text style={[styles.areaLabel, { color: selectedArea === area.id ? Colors.primary : textColor }]}>{area.label}</Text>
-                  <Text style={[styles.areaDesc, { color: textSec }]} numberOfLines={2}>{area.description}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </Animated.View>
-        )}
-
-        {step === 3 && (
-          <Animated.View entering={FadeInDown} style={styles.stepContent}>
-            <Text style={[styles.stepTitle, { color: textColor }]}>Take a Photo</Text>
-            <Text style={[styles.stepSubtitle, { color: textSec }]}>A photo helps with your vet visit record (optional)</Text>
-
-            {photoUri ? (
-              <View style={styles.photoContainer}>
-                <Image source={{ uri: photoUri }} style={styles.photo} resizeMode="cover" />
-                <Pressable onPress={() => setPhotoUri(null)} style={styles.removePhotoBtn}>
-                  <Ionicons name="close-circle" size={28} color={Colors.warning} />
-                </Pressable>
-              </View>
-            ) : (
-              <View style={[styles.photoPlaceholder, { backgroundColor: surface, borderColor: border }]}>
-                <MaterialCommunityIcons name="camera-plus" size={56} color={textSec} />
-                <Text style={[styles.photoPlaceholderText, { color: textSec }]}>No photo selected</Text>
-              </View>
-            )}
-
-            <View style={styles.photoButtons}>
-              <Pressable onPress={takePhoto} style={[styles.photoButton, { backgroundColor: Colors.primary }]}>
-                <Ionicons name="camera" size={22} color="#fff" />
-                <Text style={styles.photoButtonText}>Take Photo</Text>
-              </Pressable>
-              <Pressable onPress={pickPhoto} style={[styles.photoButtonOutline, { borderColor: Colors.primary }]}>
-                <Ionicons name="images" size={22} color={Colors.primary} />
-                <Text style={[styles.photoButtonTextOutline, { color: Colors.primary }]}>Gallery</Text>
-              </Pressable>
-            </View>
-          </Animated.View>
-        )}
-
-        {step === 4 && selectedArea && (
-          <Animated.View entering={FadeInDown} style={styles.stepContent}>
-            <Text style={[styles.stepTitle, { color: textColor }]}>Symptom Checklist</Text>
-            <Text style={[styles.stepSubtitle, { color: textSec }]}>Check all that apply for {BODY_AREAS.find(b => b.id === selectedArea)?.label}</Text>
-
-            <View style={styles.symptomList}>
-              {SYMPTOM_QUESTIONS[selectedArea]?.map((q, i) => (
-                <View key={q.id} style={[styles.symptomItem, { backgroundColor: surface, borderColor: border }]}>
-                  {q.type === 'boolean' ? (
-                    <Pressable
-                      onPress={() => { Haptics.selectionAsync(); toggleSymptom(q.id); }}
-                      style={styles.symptomRow}
-                    >
-                      <Text style={[styles.symptomLabel, { color: textColor, flex: 1 }]}>{q.label}</Text>
-                      <View style={[styles.checkbox, checkedSymptoms.includes(q.id) && styles.checkboxChecked]}>
-                        {checkedSymptoms.includes(q.id) && <Ionicons name="checkmark" size={14} color="#fff" />}
-                      </View>
-                    </Pressable>
-                  ) : (
-                    <View>
-                      <Text style={[styles.symptomLabel, { color: textColor }]}>{q.label}</Text>
-                      <View style={styles.sliderRow}>
-                        <Text style={[styles.sliderValue, { color: Colors.primary }]}>{sliderValues[q.id] ?? q.sliderMin ?? 0} {q.sliderLabel}</Text>
-                        <View style={styles.sliderButtons}>
-                          {[0, 2, 4, 6, 8, 10].map(v => (
-                            <Pressable
-                              key={v}
-                              onPress={() => { Haptics.selectionAsync(); setSliderValues(prev => ({ ...prev, [q.id]: v })); }}
-                              style={[styles.sliderPip, (sliderValues[q.id] ?? 0) >= v && { backgroundColor: Colors.primary }]}
-                            />
-                          ))}
-                        </View>
-                      </View>
-                    </View>
-                  )}
-                </View>
-              ))}
-            </View>
-          </Animated.View>
-        )}
-
-        {step === 5 && (
-          <Animated.View entering={FadeInDown} style={styles.stepContent}>
-            <Text style={[styles.stepTitle, { color: textColor }]}>Ready to Analyze</Text>
-            <Text style={[styles.stepSubtitle, { color: textSec }]}>Review and start your health analysis</Text>
-
-            <DisclaimerBanner style={{ marginBottom: 20 }} />
-
-            <View style={[styles.summaryCard, { backgroundColor: surface }]}>
-              <View style={styles.summaryRow}>
-                <MaterialCommunityIcons name="paw" size={20} color={Colors.primary} />
-                <Text style={[styles.summaryLabel, { color: textSec }]}>Pet</Text>
-                <Text style={[styles.summaryValue, { color: textColor }]}>{selectedPet?.name ?? '—'}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <MaterialCommunityIcons name="eye" size={20} color={Colors.primary} />
-                <Text style={[styles.summaryLabel, { color: textSec }]}>Area</Text>
-                <Text style={[styles.summaryValue, { color: textColor }]}>{BODY_AREAS.find(b => b.id === selectedArea)?.label ?? '—'}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
-                <Text style={[styles.summaryLabel, { color: textSec }]}>Symptoms</Text>
-                <Text style={[styles.summaryValue, { color: textColor }]}>{checkedSymptoms.length} checked</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Ionicons name="camera" size={20} color={Colors.primary} />
-                <Text style={[styles.summaryLabel, { color: textSec }]}>Photo</Text>
-                <Text style={[styles.summaryValue, { color: textColor }]}>{photoUri ? 'Included' : 'No photo'}</Text>
-              </View>
-            </View>
-
-            <Pressable
-              onPress={handleAnalyze}
-              style={({ pressed }) => [styles.analyzeButton, { opacity: pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
-            >
-              <LinearGradient
-                colors={[Colors.primary, Colors.accent]}
-                style={styles.analyzeButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                <MaterialCommunityIcons name="stethoscope" size={24} color="#fff" />
-                <Text style={styles.analyzeButtonText}>Analyze Now</Text>
-              </LinearGradient>
-            </Pressable>
-          </Animated.View>
-        )}
-      </ScrollView>
-
-      {step < 5 && (
-        <View style={[styles.footer, { paddingBottom: bottomPad + 12, backgroundColor: bg }]}>
-          <Pressable
-            onPress={goNext}
-            disabled={!canProceed()}
-            style={({ pressed }) => [styles.nextButton, !canProceed() && styles.nextButtonDisabled, { opacity: pressed ? 0.85 : 1 }]}
-          >
-            <LinearGradient
-              colors={canProceed() ? [Colors.primary, Colors.accent] : [Colors.border, Colors.border]}
-              style={styles.nextButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <Text style={styles.nextButtonText}>Continue</Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
-            </LinearGradient>
-          </Pressable>
-        </View>
-      )}
-
-      <UpgradeModal
-        visible={showUpgrade}
-        onClose={() => setShowUpgrade(false)}
-        scansUsed={monthlyScansUsed}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  backButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  stepLabel: { fontSize: 14, fontFamily: 'Inter_500Medium' },
-  progressBar: { height: 4, marginHorizontal: 24, borderRadius: 2, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: Colors.primary, borderRadius: 2 },
-  stepContent: { padding: 24, gap: 16 },
-  stepTitle: { fontSize: 26, fontFamily: 'Inter_700Bold' },
-  stepSubtitle: { fontSize: 15, fontFamily: 'Inter_400Regular', lineHeight: 22 },
-  petList: { gap: 10 },
-  petOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    padding: 14,
-    gap: 14,
-  },
-  petOptionAvatar: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-  petOptionName: { fontSize: 16, fontFamily: 'Inter_700Bold' },
-  petOptionBreed: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 2 },
-  petOptionCheck: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
-  areaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  areaCard: {
-    width: '47%',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  areaLabel: { fontSize: 15, fontFamily: 'Inter_600SemiBold', textAlign: 'center' },
-  areaDesc: { fontSize: 11, fontFamily: 'Inter_400Regular', textAlign: 'center', lineHeight: 16 },
-  photoContainer: { position: 'relative', borderRadius: 20, overflow: 'hidden' },
-  photo: { width: '100%', height: 220, borderRadius: 20 },
-  removePhotoBtn: { position: 'absolute', top: 10, right: 10 },
-  photoPlaceholder: {
-    height: 200,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  photoPlaceholderText: { fontSize: 14, fontFamily: 'Inter_400Regular' },
-  photoButtons: { flexDirection: 'row', gap: 12 },
-  photoButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 14,
-    gap: 8,
-  },
-  photoButtonText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: '#fff' },
-  photoButtonOutline: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 2,
-    gap: 8,
-  },
-  photoButtonTextOutline: { fontSize: 15, fontFamily: 'Inter_600SemiBold' },
-  symptomList: { gap: 10 },
-  symptomItem: { borderRadius: 14, borderWidth: 1, padding: 14 },
-  symptomRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  symptomLabel: { fontSize: 15, fontFamily: 'Inter_400Regular', lineHeight: 22 },
-  checkbox: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxChecked: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  sliderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
-  sliderValue: { fontSize: 20, fontFamily: 'Inter_700Bold', width: 80 },
-  sliderButtons: { flexDirection: 'row', gap: 6 },
-  sliderPip: { width: 28, height: 12, borderRadius: 6, backgroundColor: Colors.border },
-  summaryCard: { borderRadius: 16, padding: 16, gap: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  summaryRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  summaryLabel: { fontSize: 14, fontFamily: 'Inter_400Regular', width: 80 },
-  summaryValue: { flex: 1, fontSize: 15, fontFamily: 'Inter_600SemiBold' },
-  analyzeButton: { borderRadius: 18, overflow: 'hidden', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 },
-  analyzeButtonGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 20, gap: 12 },
-  analyzeButtonText: { fontSize: 20, fontFamily: 'Inter_700Bold', color: '#fff' },
-  footer: { paddingHorizontal: 24, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.border },
-  nextButton: { borderRadius: 16, overflow: 'hidden', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 5 },
-  nextButtonDisabled: { opacity: 0.5 },
-  nextButtonGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 10 },
-  nextButtonText: { fontSize: 17, fontFamily: 'Inter_700Bold', color: '#fff' },
-  analyzingContainer: { flex: 1 },
-  analyzingGradient: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  analyzingContent: { alignItems: 'center', gap: 16 },
-  analyzingTitle: { fontSize: 26, fontFamily: 'Inter_700Bold', color: '#fff', textAlign: 'center' },
-  analyzingSubtitle: { fontSize: 16, fontFamily: 'Inter_400Regular', color: 'rgba(255,255,255,0.8)', textAlign: 'center' },
-  noPetsCard: {
-    borderRadius: 20,
-    borderWidth: 1.5,
-    padding: 28,
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 8,
-  },
-  noPetsTitle: { fontSize: 20, fontFamily: 'Inter_700Bold', textAlign: 'center' },
-  noPetsSubtitle: { fontSize: 15, fontFamily: 'Inter_400Regular', textAlign: 'center', lineHeight: 22, marginBottom: 8 },
-  addPetButton: { width: '100%', borderRadius: 14, overflow: 'hidden', marginTop: 4 },
-  addPetButtonGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 10 },
-  addPetButtonText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' },
-});
+  const styles = StyleSheet.create({
+    header: { paddingHorizontal: 16, paddingBottom: 14, flexDirection: 'row', alignItems: 'center' },
+    headerTitle: { color: '#fff', fontSize: 17, fontWeight: '700' },
+    headerSub: { color: 'rgba(255,255,255,0.75)', fontSize: 12, marginTop: 2 },
+    backBtn: { padding: 4 },
+    stepBadge: { color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600' },
+    progressTrack: { height: 3, width: '100%' },
+    progressFill: { height: 3 },
+    stepTitle: { fontSize: 20, fontWeight: '700', marginBottom: 6 },
+    stepSubtitle: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
+    card: { borderRadius: 14, padding: 20, borderWidth: 1, marginBottom: 12 },
+    emptyText: { fontSize: 15, textAlign: 'center', marginBottom: 16 },
+    addPetBtn: { borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+    addPetBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+    petCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, borderWidth: 2, marginBottom: 10 },
+    petAvatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    petName: { fontSize: 16, fontWeight: '700' },
+    petBreed: { fontSize: 13, marginTop: 2 },
+    areaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    areaCard: { width: '47%', borderRadius: 14, padding: 16, borderWidth: 2, alignItems: 'center', gap: 8 },
+    areaLabel: { fontSize: 13, fontWeight: '600', textAlign: 'center' },
+    photoWrapper: { position: 'relative', alignSelf: 'center', marginBottom: 16 },
+    photo: { width: 200, height: 200, borderRadius: 14 },
+    removePhotoBtn: { position: 'absolute', top: -10, right: -10 },
+    photoButtons: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+    photoBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 14 },
+    photoBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+    sectionLabel: { fontSize: 16, fontWeight: '700', marginBottom: 6 },
+    noteText: { fontSize: 12, lineHeight: 18, marginBottom: 12 },
+    observationRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 14, borderWidth: 1.5, marginBottom: 8, gap: 10 },
+    observationText: { fontSize: 14, flex: 1 },
+    summaryCard: { borderRadius: 14, padding: 18, borderWidth: 1, marginBottom: 16 },
+    summaryLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+    summaryValue: { fontSize: 15, fontWeight: '500', marginTop: 2 },
+    summaryPhoto: { width: 120, height: 120, borderRadius: 10, marginTop: 6 },
+    disclaimerBox: { flexDirection: 'row', gap: 8, borderRadius: 12, padding: 14, borderWidth: 1, marginBottom: 20, alignItems: 'flex-start' },
+    disclaimerText: { fontSize: 13, lineHeight: 19, flex: 1 },
+    saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, borderRadius: 14, paddingVertical: 16 },
+    saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    navBar: { flexDirection: 'row', gap: 12, padding: 16, borderTopWidth: 1 },
+    navBtn: { flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderWidth: 1 },
+    navBtnText: { fontWeight: '600', fontSize: 15 },
+    navBtnPrimary: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 14 },
+    navBtnPrimaryText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  });
+  
