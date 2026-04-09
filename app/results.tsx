@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
   import * as Haptics from 'expo-haptics';
   import { LinearGradient } from 'expo-linear-gradient';
   import { router, useLocalSearchParams } from 'expo-router';
@@ -9,7 +9,6 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
     Platform,
     Pressable,
     ScrollView,
-    Share,
     StyleSheet,
     Text,
     View,
@@ -21,27 +20,6 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
   import { Colors } from '@/constants/colors';
   import { usePets } from '@/context/PetContext';
   import { DisclaimerBanner } from '@/components/DisclaimerBanner';
-
-  const URGENCY_COLORS = {
-    mild: Colors.mild,
-    moderate: Colors.moderate,
-    severe: Colors.severe,
-    emergency: Colors.emergency,
-  };
-
-  const URGENCY_ICONS: Record<string, any> = {
-    mild: 'information-circle-outline',
-    moderate: 'alert-circle-outline',
-    severe: 'warning-outline',
-    emergency: 'alert-circle',
-  };
-
-  const URGENCY_LABELS = {
-    mild: 'Routine Observation',
-    moderate: 'Worth Monitoring',
-    severe: 'Seek Vet Promptly',
-    emergency: 'Contact Vet Today',
-  };
 
   export default function ResultsScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -58,305 +36,203 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
     const textSec = isDark ? Colors.dark.textSecondary : Colors.textSecondary;
     const border = isDark ? Colors.dark.border : Colors.border;
 
-    const result = scanHistory.find(s => s.id === id);
+    const entry = scanHistory.find(s => s.id === id);
 
-    if (!result) {
+    if (!entry) {
       return (
-        <View style={[styles.container, { backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }]}>
-          <Text style={[{ color: textColor, fontSize: 18, fontFamily: 'Inter_500Medium' }]}>Observation not found</Text>
-          <Pressable onPress={() => router.back()} style={{ marginTop: 16 }}>
-            <Text style={{ color: Colors.primary, fontFamily: 'Inter_600SemiBold', fontSize: 16 }}>Go Back</Text>
+        <View style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <Text style={{ color: textSec, fontSize: 16 }}>Journal entry not found.</Text>
+          <Pressable onPress={() => router.replace('/(tabs)')} style={{ marginTop: 16 }}>
+            <Text style={{ color: Colors.primary, fontWeight: '600' }}>Go Home</Text>
           </Pressable>
         </View>
       );
     }
 
-    const isUrgent = result.overallSeverity === 'emergency' || result.overallSeverity === 'severe';
-    const urgencyColor = URGENCY_COLORS[result.overallSeverity];
-
-    const handleShare = async () => {
-      const topicsList = result.conditions.map(c => `• ${c.name}`).join('\n');
-      const message = `PetSnap Wellness Observation Log for ${result.petName}\n\nArea: ${result.bodyArea}\n\nRelated Educational Topics:\n${topicsList}\n\n${result.vetTips.join('\n')}\n\n⚠️ This information is educational only and is not veterinary advice. Always consult a licensed veterinarian.`;
-      await Share.share({ message });
-    };
+    const topic = entry.educationalTopic;
 
     return (
-      <View style={[styles.container, { backgroundColor: bg }]}>
-        {isUrgent && (
-          <LinearGradient
-            colors={[Colors.moderate, '#E65100']}
-            style={[styles.urgencyBanner, { paddingTop: topPad + 8 }]}
-          >
-            <Ionicons name="alert-circle" size={26} color="#fff" />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.urgencyTitle}>Vet Visit Recommended</Text>
-              <Text style={styles.urgencySubtitle}>Some pet safety resources recommend contacting a veterinarian promptly when these types of observations occur.</Text>
-            </View>
-          </LinearGradient>
-        )}
-
-        <View style={[styles.header, { paddingTop: isUrgent ? 8 : topPad + 8 }]}>
-          <Pressable onPress={() => router.replace('/(tabs)')} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={textColor} />
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: textColor }]}>Observation Summary</Text>
-          <Pressable onPress={handleShare} style={styles.shareButton}>
-            <Ionicons name="share-outline" size={22} color={Colors.primary} />
-          </Pressable>
-        </View>
-
-        <ScrollView
-          contentContainerStyle={[styles.content, { paddingBottom: bottomPad + 32 }]}
-          showsVerticalScrollIndicator={false}
+      <View style={{ flex: 1, backgroundColor: bg }}>
+        {/* Header */}
+        <LinearGradient
+          colors={[Colors.primaryDark, Colors.primary]}
+          style={[styles.header, { paddingTop: topPad + 8 }]}
         >
-          <Animated.View entering={FadeInDown.delay(100)} style={[styles.resultHeader, { backgroundColor: surface }]}>
-            <View style={styles.petInfo}>
-              <Text style={[styles.petName, { color: textColor }]}>{result.petName}</Text>
-              <Text style={[styles.bodyArea, { color: textSec }]}>{result.bodyArea} · {new Date(result.createdAt).toLocaleDateString()}</Text>
-            </View>
-            <View style={[styles.urgencyBadge, { backgroundColor: `${urgencyColor}18`, borderColor: `${urgencyColor}40` }]}>
-              <Ionicons name={URGENCY_ICONS[result.overallSeverity]} size={18} color={urgencyColor} />
-              <Text style={[styles.urgencyBadgeText, { color: urgencyColor }]}>{URGENCY_LABELS[result.overallSeverity]}</Text>
+          <Pressable onPress={() => router.replace('/(tabs)')} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={22} color="#fff" />
+          </Pressable>
+          <View style={{ flex: 1, marginHorizontal: 12 }}>
+            <Text style={styles.headerTitle}>Wellness Education</Text>
+            <Text style={styles.headerSub}>{entry.bodyArea} · {entry.petName}</Text>
+          </View>
+        </LinearGradient>
+
+        <DisclaimerBanner />
+
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: bottomPad + 40 }}>
+
+          {/* Journal confirmation */}
+          <Animated.View entering={FadeInDown.duration(300).delay(50)}>
+            <View style={[styles.confirmCard, { backgroundColor: Colors.primary + '14', borderColor: Colors.primary + '44' }]}>
+              <Ionicons name="checkmark-circle" size={28} color={Colors.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.confirmTitle, { color: Colors.primary }]}>Journal entry saved</Text>
+                <Text style={[styles.confirmSub, { color: textSec }]}>
+                  Your observations for {entry.petName} have been saved to your personal wellness journal.
+                </Text>
+              </View>
             </View>
           </Animated.View>
 
-          {result.photoUri && (
-            <Animated.View entering={FadeInDown.delay(150)} style={styles.photoSection}>
-              <Image source={{ uri: result.photoUri }} style={styles.photo} resizeMode="cover" />
+          {/* Photo if present */}
+          {entry.photoUri && (
+            <Animated.View entering={FadeInDown.duration(300).delay(100)}>
+              <Image source={{ uri: entry.photoUri }} style={[styles.photo, { borderColor: border }]} />
             </Animated.View>
           )}
 
-          <DisclaimerBanner style={{ marginBottom: 4 }} />
-
-          {result.conditions.length > 0 && (
-            <>
-              <Text style={[styles.sectionTitle, { color: textColor }]}>Wellness Education</Text>
-              <Animated.View entering={FadeInDown.delay(200)} style={[styles.infoBox, { backgroundColor: surface, borderColor: border }]}>
-                <Text style={[styles.infoBoxNote, { color: textSec }]}>
-                  The following are general educational topics that veterinary resources commonly discuss in relation to the observations you logged. This is not a diagnosis.
-                </Text>
-              </Animated.View>
-
-              {result.conditions.map((condition, i) => (
-                <Animated.View key={i} entering={FadeInDown.delay(250 + i * 60)} style={[styles.topicCard, { backgroundColor: surface }]}>
-                  <View style={styles.topicHeader}>
-                    <MaterialCommunityIcons name="book-open-outline" size={20} color={Colors.primary} />
-                    <Text style={[styles.topicName, { color: textColor }]}>{condition.name}</Text>
+          {/* Observations logged */}
+          {entry.observations && entry.observations.length > 0 && (
+            <Animated.View entering={FadeInDown.duration(300).delay(150)}>
+              <Text style={[styles.sectionTitle, { color: textColor }]}>What you noted</Text>
+              <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
+                {entry.observations.map((obs, i) => (
+                  <View key={i} style={[styles.obsRow, i > 0 && { borderTopWidth: 1, borderTopColor: border }]}>
+                    <Ionicons name="journal-outline" size={16} color={textSec} />
+                    <Text style={[styles.obsText, { color: textSec }]}>{obs}</Text>
                   </View>
-                  {condition.advice ? (
-                    <Text style={[styles.topicInfo, { color: textSec }]}>{condition.advice}</Text>
-                  ) : null}
-                  {condition.whenToSeeVet ? (
-                    <View style={[styles.vetHint, { borderLeftColor: Colors.primary }]}>
-                      <Text style={[styles.vetHintText, { color: textColor }]}>{condition.whenToSeeVet}</Text>
-                    </View>
-                  ) : null}
-                  <Text style={[styles.educationalNote, { color: textSec }]}>
-                    For medical concerns, consult a licensed veterinarian.
-                  </Text>
-                </Animated.View>
-              ))}
-            </>
-          )}
-
-          {result.vetTips.length > 0 && (
-            <Animated.View entering={FadeInDown.delay(400)} style={[styles.tipsCard, { backgroundColor: surface }]}>
-              <View style={styles.tipsHeader}>
-                <MaterialCommunityIcons name="stethoscope" size={20} color={Colors.primary} />
-                <Text style={[styles.tipsTitle, { color: textColor }]}>Vet Visit Notes</Text>
+                ))}
               </View>
-              <Text style={[styles.tipsSubtitle, { color: textSec }]}>Things to mention at your next vet appointment:</Text>
-              {result.vetTips.map((tip, i) => (
-                <View key={i} style={styles.tipRow}>
-                  <View style={[styles.tipBullet, { backgroundColor: Colors.primary }]} />
-                  <Text style={[styles.tipText, { color: textSec }]}>{tip}</Text>
-                </View>
-              ))}
-            </Animated.View>
-          )}
-
-          {result.homeCare.length > 0 && (
-            <Animated.View entering={FadeInDown.delay(480)} style={[styles.tipsCard, { backgroundColor: `${Colors.primary}10` }]}>
-              <View style={styles.tipsHeader}>
-                <MaterialCommunityIcons name="home-heart" size={20} color={Colors.primary} />
-                <Text style={[styles.tipsTitle, { color: textColor }]}>General Care Reminders</Text>
-              </View>
-              <Text style={[styles.tipsSubtitle, { color: textSec }]}>General wellness reminders — not a substitute for veterinary care:</Text>
-              {result.homeCare.map((tip, i) => (
-                <View key={i} style={styles.tipRow}>
-                  <View style={[styles.tipBullet, { backgroundColor: Colors.accent }]} />
-                  <Text style={[styles.tipText, { color: textSec }]}>{tip}</Text>
-                </View>
-              ))}
-              <Text style={[styles.educationalNote, { color: textSec, marginTop: 8 }]}>
-                This information is educational only and is not veterinary advice.
+              <Text style={[styles.noteText, { color: textSec }]}>
+                These personal notes are stored only on your device and are not analyzed or interpreted by PetSnap.
               </Text>
             </Animated.View>
           )}
 
-          <Animated.View entering={FadeInDown.delay(560)} style={styles.actionButtons}>
+          {/* Educational content */}
+          {topic && (
+            <>
+              <Animated.View entering={FadeInDown.duration(300).delay(200)}>
+                <View style={[styles.eduHeader, { backgroundColor: Colors.primary + '10', borderColor: Colors.primary + '30' }]}>
+                  <Ionicons name="book-outline" size={22} color={Colors.primary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.eduTitle, { color: Colors.primary }]}>{topic.title}</Text>
+                    <Text style={[styles.eduSummary, { color: textSec }]}>{topic.summary}</Text>
+                  </View>
+                </View>
+              </Animated.View>
+
+              <Animated.View entering={FadeInDown.duration(300).delay(250)}>
+                <Text style={[styles.sectionTitle, { color: textColor }]}>General Facts</Text>
+                <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
+                  {topic.generalFacts.map((fact, i) => (
+                    <View key={i} style={[styles.factRow, i > 0 && { borderTopWidth: 1, borderTopColor: border }]}>
+                      <Ionicons name="information-circle-outline" size={18} color={Colors.primary} style={{ marginTop: 2 }} />
+                      <Text style={[styles.factText, { color: textColor }]}>{fact}</Text>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+
+              <Animated.View entering={FadeInDown.duration(300).delay(300)}>
+                <Text style={[styles.sectionTitle, { color: textColor }]}>When Vets Recommend a Visit</Text>
+                <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
+                  {topic.whenVetsRecommendVisit.map((tip, i) => (
+                    <View key={i} style={[styles.factRow, i > 0 && { borderTopWidth: 1, borderTopColor: border }]}>
+                      <Ionicons name="medical-outline" size={18} color={Colors.moderate} style={{ marginTop: 2 }} />
+                      <Text style={[styles.factText, { color: textColor }]}>{tip}</Text>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+
+              <Animated.View entering={FadeInDown.duration(300).delay(350)}>
+                <Text style={[styles.sectionTitle, { color: textColor }]}>Owner Wellness Tips</Text>
+                <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
+                  {topic.ownerWellnessTips.map((tip, i) => (
+                    <View key={i} style={[styles.factRow, i > 0 && { borderTopWidth: 1, borderTopColor: border }]}>
+                      <Ionicons name="star-outline" size={18} color={Colors.mild} style={{ marginTop: 2 }} />
+                      <Text style={[styles.factText, { color: textColor }]}>{tip}</Text>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+            </>
+          )}
+
+          {/* Safety disclaimer */}
+          <Animated.View entering={FadeInDown.duration(300).delay(400)}>
+            <View style={[styles.safetyBox, { backgroundColor: surface, borderColor: border }]}>
+              <Ionicons name="shield-checkmark-outline" size={22} color={Colors.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.safetyTitle, { color: textColor }]}>Educational Information Only</Text>
+                <Text style={[styles.safetyBody, { color: textSec }]}>
+                  The content above is general educational information about pet wellness topics. It is not
+                  specific to your pet and does not constitute veterinary advice, diagnosis, or medical opinion.
+                  Always consult a licensed veterinarian for your pet's health needs.
+                </Text>
+                <Pressable
+                  onPress={() => Linking.openURL('https://www.avma.org/resources-tools/pet-owners/petcare')}
+                  style={styles.avmaLink}
+                >
+                  <Text style={{ color: Colors.primary, fontSize: 13, fontWeight: '600' }}>
+                    Learn more at AVMA.org →
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* Action buttons */}
+          <Animated.View entering={FadeInDown.duration(300).delay(450)} style={styles.actions}>
             <Pressable
-              onPress={handleShare}
-              style={({ pressed }) => [styles.actionButton, { backgroundColor: Colors.primary, opacity: pressed ? 0.85 : 1 }]}
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/scan-wizard'); }}
+              style={[styles.actionBtn, { backgroundColor: Colors.primary }]}
             >
-              <Ionicons name="share" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Share Notes</Text>
+              <Ionicons name="add-circle-outline" size={20} color="#fff" />
+              <Text style={styles.actionBtnText}>New Entry</Text>
             </Pressable>
             <Pressable
               onPress={() => router.replace('/(tabs)')}
-              style={({ pressed }) => [styles.actionButtonOutline, { borderColor: Colors.primary, opacity: pressed ? 0.85 : 1 }]}
+              style={[styles.actionBtnSecondary, { borderColor: border }]}
             >
-              <Ionicons name="home-outline" size={20} color={Colors.primary} />
-              <Text style={[styles.actionButtonTextOutline, { color: Colors.primary }]}>Done</Text>
+              <Ionicons name="home-outline" size={20} color={textColor} />
+              <Text style={[styles.actionBtnSecondaryText, { color: textColor }]}>Home</Text>
             </Pressable>
           </Animated.View>
 
-          {isUrgent && (
-            <Pressable
-              onPress={() => Linking.openURL('tel:+18005484823')}
-              style={[styles.vetCallButton, { backgroundColor: Colors.moderate }]}
-            >
-              <MaterialCommunityIcons name="phone" size={22} color="#fff" />
-              <Text style={styles.vetCallButtonText}>Find a Veterinarian</Text>
-            </Pressable>
-          )}
         </ScrollView>
       </View>
     );
   }
 
   const styles = StyleSheet.create({
-    container: { flex: 1 },
-    urgencyBanner: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      paddingHorizontal: 20,
-      paddingBottom: 16,
-      gap: 12,
-    },
-    urgencyTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff', marginBottom: 2 },
-    urgencySubtitle: { fontSize: 12, fontFamily: 'Inter_400Regular', color: 'rgba(255,255,255,0.9)', lineHeight: 17 },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingBottom: 12,
-    },
-    closeButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-    headerTitle: { flex: 1, textAlign: 'center', fontSize: 18, fontFamily: 'Inter_700Bold' },
-    shareButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-    content: { paddingHorizontal: 20, gap: 16 },
-    resultHeader: {
-      borderRadius: 20,
-      padding: 20,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.08,
-      shadowRadius: 10,
-      elevation: 3,
-    },
-    petInfo: { flex: 1 },
-    petName: { fontSize: 20, fontFamily: 'Inter_700Bold', marginBottom: 4 },
-    bodyArea: { fontSize: 13, fontFamily: 'Inter_400Regular' },
-    urgencyBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 10,
-      borderWidth: 1,
-    },
-    urgencyBadgeText: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
-    photoSection: {
-      borderRadius: 20,
-      overflow: 'hidden',
-      height: 180,
-    },
-    photo: { width: '100%', height: '100%' },
-    sectionTitle: { fontSize: 18, fontFamily: 'Inter_700Bold' },
-    infoBox: {
-      borderRadius: 12,
-      padding: 14,
-      borderWidth: 1,
-    },
-    infoBoxNote: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 19 },
-    topicCard: {
-      borderRadius: 16,
-      padding: 16,
-      gap: 10,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 8,
-      elevation: 2,
-    },
-    topicHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    topicName: { fontSize: 16, fontFamily: 'Inter_700Bold', flex: 1 },
-    topicInfo: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20 },
-    vetHint: {
-      borderLeftWidth: 3,
-      paddingLeft: 12,
-      paddingVertical: 4,
-    },
-    vetHintText: { fontSize: 13, fontFamily: 'Inter_500Medium', lineHeight: 19 },
-    educationalNote: {
-      fontSize: 11,
-      fontFamily: 'Inter_400Regular',
-      fontStyle: 'italic',
-      lineHeight: 16,
-      marginTop: 2,
-    },
-    tipsCard: {
-      borderRadius: 16,
-      padding: 16,
-      gap: 10,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.04,
-      shadowRadius: 6,
-      elevation: 1,
-    },
-    tipsHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    tipsTitle: { fontSize: 16, fontFamily: 'Inter_700Bold' },
-    tipsSubtitle: { fontSize: 12, fontFamily: 'Inter_400Regular', fontStyle: 'italic' },
-    tipRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-    tipBullet: { width: 6, height: 6, borderRadius: 3, marginTop: 7 },
-    tipText: { flex: 1, fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 21 },
-    actionButtons: { flexDirection: 'row', gap: 12 },
-    actionButton: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 16,
-      borderRadius: 14,
-      gap: 8,
-    },
-    actionButtonText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' },
-    actionButtonOutline: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 16,
-      borderRadius: 14,
-      borderWidth: 2,
-      gap: 8,
-    },
-    actionButtonTextOutline: { fontSize: 16, fontFamily: 'Inter_700Bold' },
-    vetCallButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 16,
-      borderRadius: 14,
-      gap: 10,
-      marginTop: 4,
-    },
-    vetCallButtonText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' },
+    header: { paddingHorizontal: 16, paddingBottom: 14, flexDirection: 'row', alignItems: 'center' },
+    headerTitle: { color: '#fff', fontSize: 17, fontWeight: '700' },
+    headerSub: { color: 'rgba(255,255,255,0.75)', fontSize: 12, marginTop: 2 },
+    backBtn: { padding: 4 },
+    confirmCard: { flexDirection: 'row', gap: 12, borderRadius: 14, padding: 16, borderWidth: 1, marginBottom: 16, alignItems: 'flex-start' },
+    confirmTitle: { fontSize: 15, fontWeight: '700' },
+    confirmSub: { fontSize: 13, lineHeight: 18, marginTop: 2 },
+    photo: { width: '100%', height: 200, borderRadius: 14, marginBottom: 16, borderWidth: 1 },
+    sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 10, marginTop: 4 },
+    card: { borderRadius: 14, borderWidth: 1, marginBottom: 8, overflow: 'hidden' },
+    obsRow: { flexDirection: 'row', gap: 10, padding: 12, alignItems: 'center' },
+    obsText: { fontSize: 14, flex: 1 },
+    noteText: { fontSize: 12, lineHeight: 17, marginBottom: 16 },
+    eduHeader: { flexDirection: 'row', gap: 12, borderRadius: 14, padding: 16, borderWidth: 1, marginBottom: 16, alignItems: 'flex-start' },
+    eduTitle: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
+    eduSummary: { fontSize: 13, lineHeight: 19 },
+    factRow: { flexDirection: 'row', gap: 10, padding: 14, alignItems: 'flex-start' },
+    factText: { fontSize: 14, lineHeight: 20, flex: 1 },
+    safetyBox: { flexDirection: 'row', gap: 12, borderRadius: 14, padding: 16, borderWidth: 1, marginTop: 8, marginBottom: 20, alignItems: 'flex-start' },
+    safetyTitle: { fontSize: 14, fontWeight: '700', marginBottom: 6 },
+    safetyBody: { fontSize: 13, lineHeight: 19 },
+    avmaLink: { marginTop: 10 },
+    actions: { flexDirection: 'row', gap: 12 },
+    actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 14 },
+    actionBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+    actionBtnSecondary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 14, borderWidth: 1 },
+    actionBtnSecondaryText: { fontWeight: '600', fontSize: 14 },
   });
   
