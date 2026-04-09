@@ -17,7 +17,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '@/constants/colors';
 import { usePets } from '@/context/PetContext';
-import { HealthScoreRing } from '@/components/HealthScoreRing';
 import { ScanHistoryCard } from '@/components/ScanHistoryCard';
 
 export default function PetDetailScreen() {
@@ -86,7 +85,7 @@ export default function PetDetailScreen() {
         </View>
 
         <View style={styles.scoreContainer}>
-          <HealthScoreRing score={pet.healthScore} size={80} strokeWidth={7} light />
+          
           <Text style={styles.scoreLabel}>Health Score</Text>
         </View>
       </LinearGradient>
