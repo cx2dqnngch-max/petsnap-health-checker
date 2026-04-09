@@ -19,7 +19,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '@/constants/colors';
 import { usePets } from '@/context/PetContext';
-import { HealthScoreRing } from '@/components/HealthScoreRing';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 20 * 2 - 12) / 2;
@@ -106,9 +105,7 @@ export default function PetsScreen() {
                   <Text style={[styles.petName, { color: textColor }]} numberOfLines={1}>{pet.name}</Text>
                   <Text style={[styles.petBreed, { color: textSec }]} numberOfLines={1}>{pet.breed}</Text>
                   <Text style={[styles.petAge, { color: textSec }]}>{pet.ageYears}y · {pet.weightLbs} lbs</Text>
-                  <View style={styles.healthScoreContainer}>
-                    <HealthScoreRing score={pet.healthScore} size={52} strokeWidth={5} />
-                  </View>
+                  
                   <Text style={[styles.healthLabel, { color: textSec }]}>Health Score</Text>
                 </Pressable>
               </Animated.View>
@@ -164,7 +161,6 @@ const styles = StyleSheet.create({
   petName: { fontSize: 16, fontFamily: 'Inter_700Bold', marginBottom: 2, textAlign: 'center' },
   petBreed: { fontSize: 12, fontFamily: 'Inter_400Regular', textAlign: 'center', marginBottom: 4 },
   petAge: { fontSize: 12, fontFamily: 'Inter_500Medium', textAlign: 'center', marginBottom: 12 },
-  healthScoreContainer: { marginBottom: 4 },
   healthLabel: { fontSize: 11, fontFamily: 'Inter_400Regular' },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, gap: 12 },
   emptyTitle: { fontSize: 22, fontFamily: 'Inter_700Bold' },
