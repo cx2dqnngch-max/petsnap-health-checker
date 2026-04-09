@@ -1,116 +1,103 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  useColorScheme,
-} from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+  import * as Haptics from 'expo-haptics';
+  import { router } from 'expo-router';
+  import React from 'react';
+  import {
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+    useColorScheme,
+  } from 'react-native';
+  import Animated, { FadeInDown } from 'react-native-reanimated';
+  import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors } from '@/constants/colors';
-import { usePets } from '@/context/PetContext';
-import { ScanHistoryCard } from '@/components/ScanHistoryCard';
+  import { Colors } from '@/constants/colors';
+  import { usePets } from '@/context/PetContext';
+  import { ScanHistoryCard } from '@/components/ScanHistoryCard';
 
-type FilterType = 'all' | 'mild' | 'moderate' | 'severe' | 'emergency';
+  export default function HistoryScreen() {
+    const { scanHistory, deleteScanResult } = usePets();
+    const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+    const topPad = Platform.OS === 'web' ? 67 : insets.top;
+    const bottomPad = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 90;
 
-const FILTERS: { id: FilterType; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'mild', label: 'Mild' },
-  { id: 'moderate', label: 'Moderate' },
-  { id: 'severe', label: 'Severe' },
-  { id: 'emergency', label: 'Emergency' },
-];
+    const bg = isDark ? Colors.dark.background : Colors.background;
+    const textColor = isDark ? Colors.dark.text : Colors.text;
+    const textSec = isDark ? Colors.dark.textSecondary : Colors.textSecondary;
+    const surface = isDark ? Colors.dark.surface : Colors.surface;
+    const border = isDark ? Colors.dark.border : Colors.border;
 
-export default function HistoryScreen() {
-  const { scanHistory, deleteScanResult } = usePets();
-  const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const topPad = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPad = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 90;
+    return (
+      <View style={[styles.container, { backgroundColor: bg }]}>
+        <View style={[styles.header, { paddingTop: topPad + 16 }]}>
+          <Text style={[styles.headerTitle, { color: textColor }]}>My Wellness Journal</Text>
+          <Text style={[styles.headerCount, { color: textSec }]}>
+            {scanHistory.length} {scanHistory.length === 1 ? 'entry' : 'entries'}
+          </Text>
+        </View>
 
-  const bg = isDark ? Colors.dark.background : Colors.background;
-  const textColor = isDark ? Colors.dark.text : Colors.text;
-  const textSec = isDark ? Colors.dark.textSecondary : Colors.textSecondary;
-  const surface = isDark ? Colors.dark.surface : Colors.surface;
+        <View style={[styles.notice, { backgroundColor: Colors.primary + '12', borderColor: Colors.primary + '30' }]}>
+          <Ionicons name="information-circle-outline" size={16} color={Colors.primary} />
+          <Text style={[styles.noticeText, { color: Colors.primary }]}>
+            These are your personal wellness journal entries. Each entry shows general educational information
+            about pet care topics — not assessments of your pet.
+          </Text>
+        </View>
 
-  const [filter, setFilter] = useState<FilterType>('all');
-
-  const filtered = filter === 'all'
-    ? scanHistory
-    : scanHistory.filter(s => s.overallSeverity === filter);
-
-  return (
-    <View style={[styles.container, { backgroundColor: bg }]}>
-      <View style={[styles.header, { paddingTop: topPad + 16 }]}>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Observation History</Text>
-        <Text style={[styles.headerCount, { color: textSec }]}>{scanHistory.length} observation{scanHistory.length === 1 ? '' : 's'} recorded</Text>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: bottomPad }}
+          showsVerticalScrollIndicator={false}
+        >
+          {scanHistory.length === 0 ? (
+            <View style={[styles.emptyState, { backgroundColor: surface, borderColor: border }]}>
+              <Ionicons name="journal-outline" size={48} color={textSec} />
+              <Text style={[styles.emptyTitle, { color: textColor }]}>No journal entries yet</Text>
+              <Text style={[styles.emptySub, { color: textSec }]}>
+                Start a new wellness journal entry to log observations and access pet care education.
+              </Text>
+              <Pressable
+                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/scan-wizard'); }}
+                style={[styles.startBtn, { backgroundColor: Colors.primary }]}
+              >
+                <Ionicons name="add-circle-outline" size={20} color="#fff" />
+                <Text style={styles.startBtnText}>New Journal Entry</Text>
+              </Pressable>
+            </View>
+          ) : (
+            scanHistory.map((entry, i) => (
+              <Animated.View key={entry.id} entering={FadeInDown.duration(250).delay(i * 50)}>
+                <ScanHistoryCard
+                  scan={entry}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    router.push({ pathname: '/results', params: { id: entry.id } });
+                  }}
+                />
+              </Animated.View>
+            ))
+          )}
+        </ScrollView>
       </View>
+    );
+  }
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
-        {FILTERS.map(f => (
-          <Pressable
-            key={f.id}
-            onPress={() => { Haptics.selectionAsync(); setFilter(f.id); }}
-            style={[styles.filterChip, filter === f.id && styles.filterChipActive]}
-          >
-            <Text style={[styles.filterChipText, filter === f.id && styles.filterChipTextActive]}>
-              {f.label}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      <ScrollView
-        contentContainerStyle={[styles.list, { paddingBottom: bottomPad }]}
-        showsVerticalScrollIndicator={false}
-      >
-        {filtered.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="time-outline" size={52} color={textSec} />
-            <Text style={[styles.emptyTitle, { color: textColor }]}>No scans yet</Text>
-            <Text style={[styles.emptySubtitle, { color: textSec }]}>
-              {filter !== 'all' ? `No ${filter} severity scans found.` : 'Tap the camera icon to scan a symptom.'}
-            </Text>
-          </View>
-        ) : (
-          filtered.map((scan, i) => (
-            <Animated.View key={scan.id} entering={FadeInDown.delay(i * 60)}>
-              <ScanHistoryCard
-                scan={scan}
-                onPress={() => router.push({ pathname: '/scan-detail', params: { id: scan.id } })}
-              />
-            </Animated.View>
-          ))
-        )}
-      </ScrollView>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: { paddingHorizontal: 24, paddingBottom: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  headerTitle: { fontSize: 28, fontFamily: 'Inter_700Bold' },
-  headerCount: { fontSize: 14, fontFamily: 'Inter_400Regular', marginBottom: 4 },
-  filterRow: { paddingHorizontal: 20, paddingBottom: 16, gap: 8 },
-  filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: Colors.border },
-  filterChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  filterChipText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
-  filterChipTextActive: { color: '#fff' },
-  list: { paddingHorizontal: 20, gap: 12 },
-  emptyState: { paddingTop: 60, alignItems: 'center', gap: 12 },
-  emptyTitle: { fontSize: 20, fontFamily: 'Inter_700Bold' },
-  emptySubtitle: { fontSize: 15, fontFamily: 'Inter_400Regular', textAlign: 'center', lineHeight: 22 },
-});
+  const styles = StyleSheet.create({
+    container: { flex: 1 },
+    header: { paddingHorizontal: 20, paddingBottom: 10 },
+    headerTitle: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+    headerCount: { fontSize: 14, marginTop: 4 },
+    notice: { flexDirection: 'row', gap: 8, marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 12, borderWidth: 1, alignItems: 'flex-start' },
+    noticeText: { fontSize: 12, lineHeight: 17, flex: 1 },
+    emptyState: { borderRadius: 16, padding: 32, alignItems: 'center', borderWidth: 1, marginTop: 16 },
+    emptyTitle: { fontSize: 18, fontWeight: '700', marginTop: 14, marginBottom: 8 },
+    emptySub: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginBottom: 20 },
+    startBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 12 },
+    startBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  });
+  
