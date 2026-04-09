@@ -19,7 +19,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/colors';
 import { FREE_SCANS_PER_MONTH, usePets } from '@/context/PetContext';
 import { VET_TIPS } from '@/data/symptomDatabase';
-import { HealthScoreRing } from '@/components/HealthScoreRing';
 import { DisclaimerBanner } from '@/components/DisclaimerBanner';
 import { ScanHistoryCard } from '@/components/ScanHistoryCard';
 import { UpgradeModal } from '@/components/UpgradeModal';
@@ -92,7 +91,7 @@ export default function HomeScreen() {
           </View>
           {selectedPet && (
             <View style={styles.headerScore}>
-              <HealthScoreRing score={selectedPet.healthScore} size={64} strokeWidth={6} light />
+              
             </View>
           )}
         </View>
