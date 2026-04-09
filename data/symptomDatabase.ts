@@ -354,4 +354,40 @@
   } {
     return { educationalTopic: getEducationalContent(area) };
   }
+
+  // VET_TIPS — 31 general daily pet wellness reminders, rotated by day of month.
+  // All tips are generic educational content. None are specific to any individual pet.
+  export const VET_TIPS: string[] = [
+    'Regular wellness visits help veterinarians catch changes early — annual checkups are recommended for most adult pets.',
+    'Fresh water available at all times supports kidney health and overall hydration in companion animals.',
+    'Dental disease is one of the most common conditions seen in pets — daily brushing is the gold standard for prevention.',
+    'Maintaining a healthy body weight is widely cited as one of the most impactful things owners can do for their pet\'s joint health.',
+    'Year-round parasite prevention is recommended by most veterinary associations for both dogs and cats.',
+    'Pets thrive on routine — consistent feeding and activity schedules support digestive and behavioral wellness.',
+    'Regular brushing helps distribute natural coat oils, remove loose fur, and gives you a chance to notice any coat changes.',
+    'Mental enrichment — puzzle feeders, playtime, and new experiences — supports behavioral wellness in companion animals.',
+    'Core vaccinations protect pets from serious preventable diseases; your veterinarian can recommend a schedule appropriate for your pet.',
+    'Outdoor cats and dogs benefit from microchipping — it\'s the most reliable way to reunite lost pets with their owners.',
+    'Socialization throughout life helps pets adapt positively to new people, animals, and environments.',
+    'Spaying or neutering has documented health and behavioral benefits — discuss timing with your veterinarian.',
+    'Most veterinary associations recommend at least annual wellness exams; senior pets often benefit from twice-yearly visits.',
+    'Signs of dental disease in pets can be subtle — bad breath, changes in eating habits, or mouth sensitivity are worth noting.',
+    'A balanced, age-appropriate diet is foundational to your pet\'s long-term health and wellbeing.',
+    'Regular nail trims prevent overgrowth that can affect how pets walk and cause discomfort.',
+    'Heat safety matters — never leave pets in parked vehicles and ensure outdoor pets have shade and water in warm weather.',
+    'Heartworm disease is transmitted by mosquitoes and is preventable with monthly or periodic medication.',
+    'Ear health maintenance — checking ears weekly and drying after water exposure — can prevent common ear concerns.',
+    'Stress in pets can be triggered by changes in environment, routine, or household; enrichment and consistency help.',
+    'Flea and tick prevention should be tailored to your region and your pet\'s lifestyle — ask your veterinarian for guidance.',
+    'Eye care begins with keeping the area around the eyes clean and watching for any new changes at routine wellness exams.',
+    'Cats are obligate carnivores with unique nutritional requirements — consult your veterinarian about appropriate feline diets.',
+    'Exercise appropriate for your pet\'s age, breed, and health status supports cardiovascular and joint health.',
+    'Travel safety for pets includes using appropriate restraints and ensuring carriers are secure and well-ventilated.',
+    'Pet insurance and wellness plans are options some owners use to help manage the cost of routine and unexpected veterinary care.',
+    'Introducing pets to new animals should be done gradually and in neutral territory to support positive social outcomes.',
+    'Winter care includes protecting paws from ice and salt, and ensuring outdoor pets have adequate shelter from cold.',
+    'Nutrition labels on pet food show ingredients in descending order by weight — named protein sources are typically preferred.',
+    'Keeping records of your pet\'s wellness history, vaccinations, and observations helps your veterinarian provide better care.',
+    'The AVMA, ASPCA, and your local veterinary practice are excellent resources for evidence-based pet wellness information.',
+  ];
   
