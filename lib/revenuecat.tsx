@@ -10,6 +10,11 @@ const REVENUECAT_ANDROID_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_AP
 
 export const REVENUECAT_ENTITLEMENT_IDENTIFIER = "premium";
 
+  // Exact App Store product identifiers for PetSnap subscriptions.
+  // These must match what is configured in App Store Connect and the RevenueCat dashboard.
+  export const MONTHLY_PRODUCT_ID = "petsnap_monthly_v1";
+  export const ANNUAL_PRODUCT_ID = "petsnap_annual_v1";
+
 function getRevenueCatApiKey(): string | null {
   if (__DEV__ || Platform.OS === "web" || Constants.executionEnvironment === "storeClient") {
     return REVENUECAT_TEST_API_KEY ?? null;
