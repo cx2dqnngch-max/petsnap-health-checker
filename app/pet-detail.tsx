@@ -117,7 +117,7 @@ export default function PetDetailScreen() {
           <View style={[styles.emptyScans, { backgroundColor: surface }]}>
             <MaterialCommunityIcons name="camera-plus-outline" size={40} color={textSec} />
             <Text style={[styles.emptyTitle, { color: textColor }]}>No scans yet</Text>
-            <Text style={[styles.emptySubtitle, { color: textSec }]}>Tap New Scan to analyze {pet.name}'s health.</Text>
+            <Text style={[styles.emptySubtitle, { color: textSec }]}>Tap New Entry to start a wellness journal entry for {pet.name}.</Text>
           </View>
         ) : (
           scans.map((scan, i) => (
