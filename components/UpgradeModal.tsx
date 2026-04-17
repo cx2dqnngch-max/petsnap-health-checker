@@ -52,18 +52,26 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
     const currentOffering = offerings?.current;
 
-    const monthlyPkg = currentOffering?.monthly
-      ?? currentOffering?.availablePackages?.find(
-          (p: any) => p.packageType === 'MONTHLY' || p.identifier === '$rc_monthly'
-        );
+    const monthlyPkg =
+        currentOffering?.availablePackages?.find(
+          (p: any) => p.product?.productIdentifier === MONTHLY_PRODUCT_ID
+        )
+        ?? currentOffering?.monthly
+        ?? currentOffering?.availablePackages?.find(
+            (p: any) => p.packageType === 'MONTHLY' || p.identifier === '$rc_monthly'
+          );
 
-    const yearlyPkg = currentOffering?.annual
-      ?? currentOffering?.availablePackages?.find(
-          (p: any) =>
-            p.packageType === 'ANNUAL' ||
-            p.identifier === '$rc_annual' ||
-            (p.product?.productIdentifier ?? '').toLowerCase().includes('annual')
-        );
+    const yearlyPkg =
+        currentOffering?.availablePackages?.find(
+          (p: any) => p.product?.productIdentifier === ANNUAL_PRODUCT_ID
+        )
+        ?? currentOffering?.annual
+        ?? currentOffering?.availablePackages?.find(
+            (p: any) =>
+              p.packageType === 'ANNUAL' ||
+              p.identifier === '$rc_annual' ||
+              (p.product?.productIdentifier ?? '').toLowerCase().includes('annual')
+          );
 
     const monthlyPrice = monthlyPkg?.product?.priceString ?? '$4.99';
     const yearlyPrice = yearlyPkg?.product?.priceString ?? '$39.99';
