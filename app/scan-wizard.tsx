@@ -182,7 +182,7 @@ import { Ionicons } from '@expo/vector-icons';
             <Animated.View entering={FadeInDown.duration(300)}>
               <Text style={[styles.stepTitle, { color: textColor }]}>What area are you logging about?</Text>
               <Text style={[styles.stepSubtitle, { color: textSec }]}>
-                Your selection is used to show you relevant pet care education. No analysis is performed.
+                Choosing a topic area shows you a fixed general wellness article about that subject. Every owner who selects the same topic sees identical educational content — your specific observations do not change what is displayed.
               </Text>
               <View style={styles.areaGrid}>
                 {BODY_AREAS.map(area => (
@@ -231,7 +231,7 @@ import { Ionicons } from '@expo/vector-icons';
                 What did you notice? (optional — for your journal only)
               </Text>
               <Text style={[styles.noteText, { color: textSec }]}>
-                These observations are stored privately as personal notes. They are not analyzed or interpreted.
+                These are personal journal notes stored privately on your device only. They are not analyzed, interpreted, or used to determine the educational content shown after saving.
               </Text>
               {(OBSERVATION_PROMPTS[selectedArea] ?? []).map(obs => (
                 <Pressable
