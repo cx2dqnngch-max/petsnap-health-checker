@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/colors';
 import { usePets } from '@/context/PetContext';
 import { UpgradeModal } from '@/components/UpgradeModal';
-import { useSubscription } from '@/lib/revenuecat';
+import { useSubscription, ANNUAL_PRODUCT_ID, MONTHLY_PRODUCT_ID } from '@/lib/revenuecat';
 
 const EDUCATION_ARTICLES = [
   {
@@ -510,7 +510,7 @@ export default function MoreScreen() {
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 17, fontFamily: 'Inter_700Bold', color: '#fff' }}>PetSnap Premium</Text>
               <Text style={{ fontSize: 13, fontFamily: 'Inter_400Regular', color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>
-                {(customerInfo?.activeSubscriptions ?? []).some((s: string) => s.includes('annual') || s.includes('yearly'))
+                {(customerInfo?.activeSubscriptions ?? []).some((s: string) => s === ANNUAL_PRODUCT_ID || s.includes('annual') || s.includes('yearly'))
                   ? 'Annual plan · Manage in App Store'
                   : 'Monthly plan · Manage in App Store'}
               </Text>
