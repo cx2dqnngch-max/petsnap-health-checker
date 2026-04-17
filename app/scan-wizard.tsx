@@ -282,9 +282,10 @@ import { Ionicons } from '@expo/vector-icons';
               <View style={[styles.disclaimerBox, { backgroundColor: Colors.primary + '14', borderColor: Colors.primary + '44' }]}>
                 <Ionicons name="information-circle-outline" size={18} color={Colors.primary} />
                 <Text style={[styles.disclaimerText, { color: Colors.primary }]}>
-                  After saving, you will see general educational information about{' '}
-                  {BODY_AREAS.find(b => b.id === selectedArea)?.label}. This is not an assessment
-                  of your pet. Always consult a licensed veterinarian for any health concerns.
+                  After saving, you will see a fixed general educational article about{' '}
+                  {BODY_AREAS.find(b => b.id === selectedArea)?.label}. Every owner who logs this
+                  topic area sees the same article — it is not based on your observations and is not
+                  an assessment of your pet. Always consult a licensed veterinarian for health concerns.
                 </Text>
               </View>
 
