@@ -50,7 +50,7 @@ export default function ScanTabScreen() {
     >
       <View style={[styles.header, { paddingTop: topPad + 16 }]}>
         <Text style={[styles.headerTitle, { color: textColor }]}>Snap & Scan</Text>
-        <Text style={[styles.headerSub, { color: textSec }]}>5-step veterinary health analysis</Text>
+        <Text style={[styles.headerSub, { color: textSec }]}>4-step wellness journal entry</Text>
       </View>
 
       <View style={[styles.scansLeftPill, { backgroundColor: surface, borderColor: border }]}>
@@ -98,7 +98,7 @@ export default function ScanTabScreen() {
         <Text style={[styles.ctaSub, { color: textSec }]}>
           {(freeScansLeft <= 0 && !isSubscribed)
             ? 'You have used your free scans this month. Upgrade to Premium for unlimited scans, PDF reports, and more.'
-            : 'Take a photo of your pet symptom area and answer a few quick questions for an instant health analysis.'}
+            : 'Snap an optional photo, choose a wellness topic, and note any observations for a private journal entry.'}
         </Text>
 
         <Pressable
