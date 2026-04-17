@@ -344,27 +344,24 @@ function AboutModal({ visible, onClose, isDark }: AboutModalProps) {
               <MaterialCommunityIcons name="paw" size={36} color="#fff" />
             </LinearGradient>
           </View>
-          <Text style={[styles.aboutAppName, { color: textColor }]}>PetSnap Health Checker</Text>
+          <Text style={[styles.aboutAppName, { color: textColor }]}>PetSnap Journal</Text>
           <Text style={[styles.aboutVersion, { color: textSec }]}>Version 1.0.0</Text>
 
           <Text style={[styles.aboutSection, { color: textColor }]}>What PetSnap Does</Text>
           <Text style={[styles.aboutBody, { color: textSec }]}>
-            PetSnap helps you identify potential health concerns in your pet by analyzing symptoms against veterinary reference databases. Snap a photo, answer a few questions, and receive an instant health analysis with home care tips and vet preparation advice.
+            PetSnap Journal is a personal pet wellness journal. Snap an optional photo, choose a topic area, and add your own observations — all saved privately on your device. After each entry, you'll see a general educational article about that pet care topic.
           </Text>
 
           <Text style={[styles.aboutSection, { color: textColor }]}>Data Sources</Text>
           <Text style={[styles.aboutBody, { color: textSec }]}>
-            Condition information is referenced from:{'\n'}
-            • Merck Veterinary Manual{'\n'}
-            • PetMD Clinical Database{'\n'}
-            • ASPCA Animal Poison Control & Health Guidelines
+            General educational wellness articles reference publicly available veterinary resources including the AVMA, ASPCA, and Merck Veterinary Manual. No AI or diagnostic system is used.
           </Text>
 
           <Text style={[styles.aboutSection, { color: textColor }]}>Important Disclaimer</Text>
           <View style={[styles.aboutDisclaimer, { backgroundColor: `${Colors.primary}12`, borderColor: Colors.primary }]}>
             <MaterialCommunityIcons name="alert-circle-outline" size={18} color={Colors.primaryDark} />
             <Text style={[styles.aboutDisclaimerText, { color: Colors.primaryDark }]}>
-              PetSnap is an informational tool ONLY and does not provide veterinary diagnoses. Always consult a licensed veterinarian for your pet's health concerns.
+              PetSnap Journal is an educational journaling tool ONLY. It does not analyze, assess, or interpret your pet's health. Always consult a licensed veterinarian for health concerns.
             </Text>
           </View>
 
