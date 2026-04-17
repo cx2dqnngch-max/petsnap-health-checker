@@ -62,7 +62,7 @@ import { Ionicons } from '@expo/vector-icons';
             <Ionicons name="arrow-back" size={22} color="#fff" />
           </Pressable>
           <View style={{ flex: 1, marginHorizontal: 12 }}>
-            <Text style={styles.headerTitle}>Wellness Education</Text>
+            <Text style={styles.headerTitle}>Journal Entry Saved</Text>
             <Text style={styles.headerSub}>{entry.bodyArea} · {entry.petName}</Text>
           </View>
         </LinearGradient>
@@ -79,6 +79,7 @@ import { Ionicons } from '@expo/vector-icons';
                 <Text style={[styles.confirmTitle, { color: Colors.primary }]}>Journal entry saved</Text>
                 <Text style={[styles.confirmSub, { color: textSec }]}>
                   Your observations for {entry.petName} have been saved to your personal wellness journal.
+                  They are not analyzed or interpreted.
                 </Text>
               </View>
             </View>
@@ -91,27 +92,21 @@ import { Ionicons } from '@expo/vector-icons';
             </Animated.View>
           )}
 
-          {/* Observations logged */}
-          {entry.observations && entry.observations.length > 0 && (
-            <Animated.View entering={FadeInDown.duration(300).delay(150)}>
-              <Text style={[styles.sectionTitle, { color: textColor }]}>What you noted</Text>
-              <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
-                {entry.observations.map((obs, i) => (
-                  <View key={i} style={[styles.obsRow, i > 0 && { borderTopWidth: 1, borderTopColor: border }]}>
-                    <Ionicons name="journal-outline" size={16} color={textSec} />
-                    <Text style={[styles.obsText, { color: textSec }]}>{obs}</Text>
-                  </View>
-                ))}
-              </View>
-              <Text style={[styles.noteText, { color: textSec }]}>
-                These personal notes are stored only on your device and are not analyzed or interpreted by PetSnap.
-              </Text>
-            </Animated.View>
-          )}
-
-          {/* Educational content */}
+          {/* Educational content — shown first, before the user's notes */}
           {topic && (
             <>
+              {/* Explicit notice: same content for every user */}
+              <Animated.View entering={FadeInDown.duration(300).delay(150)}>
+                <View style={[styles.staticNotice, { backgroundColor: surface, borderColor: border }]}>
+                  <Ionicons name="information-circle-outline" size={18} color={textSec} />
+                  <Text style={[styles.staticNoticeText, { color: textSec }]}>
+                    The general wellness article below covers <Text style={{ fontWeight: '700' }}>{entry.bodyArea}</Text>. Every pet
+                    owner who selects this topic receives the same fixed article — it is not based on your
+                    specific observations or your pet's individual health.
+                  </Text>
+                </View>
+              </Animated.View>
+
               <Animated.View entering={FadeInDown.duration(300).delay(200)}>
                 <View style={[styles.eduHeader, { backgroundColor: Colors.primary + '10', borderColor: Colors.primary + '30' }]}>
                   <Ionicons name="book-outline" size={22} color={Colors.primary} />
@@ -135,7 +130,7 @@ import { Ionicons } from '@expo/vector-icons';
               </Animated.View>
 
               <Animated.View entering={FadeInDown.duration(300).delay(300)}>
-                <Text style={[styles.sectionTitle, { color: textColor }]}>When Vets Recommend a Visit</Text>
+                <Text style={[styles.sectionTitle, { color: textColor }]}>General Veterinary Guidelines</Text>
                 <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
                   {topic.whenVetsRecommendVisit.map((tip, i) => (
                     <View key={i} style={[styles.factRow, i > 0 && { borderTopWidth: 1, borderTopColor: border }]}>
@@ -147,7 +142,7 @@ import { Ionicons } from '@expo/vector-icons';
               </Animated.View>
 
               <Animated.View entering={FadeInDown.duration(300).delay(350)}>
-                <Text style={[styles.sectionTitle, { color: textColor }]}>Owner Wellness Tips</Text>
+                <Text style={[styles.sectionTitle, { color: textColor }]}>General Owner Wellness Tips</Text>
                 <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
                   {topic.ownerWellnessTips.map((tip, i) => (
                     <View key={i} style={[styles.factRow, i > 0 && { borderTopWidth: 1, borderTopColor: border }]}>
@@ -183,8 +178,28 @@ import { Ionicons } from '@expo/vector-icons';
             </View>
           </Animated.View>
 
+          {/* Your journal notes — shown AFTER education, clearly labeled as uninterpreted */}
+          {entry.observations && entry.observations.length > 0 && (
+            <Animated.View entering={FadeInDown.duration(300).delay(450)}>
+              <Text style={[styles.sectionTitle, { color: textColor }]}>Your Journal Notes</Text>
+              <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
+                {entry.observations.map((obs, i) => (
+                  <View key={i} style={[styles.obsRow, i > 0 && { borderTopWidth: 1, borderTopColor: border }]}>
+                    <Ionicons name="journal-outline" size={16} color={textSec} />
+                    <Text style={[styles.obsText, { color: textSec }]}>{obs}</Text>
+                  </View>
+                ))}
+              </View>
+              <Text style={[styles.noteText, { color: textSec }]}>
+                These personal notes are stored only on your device. They are not analyzed, interpreted,
+                or used to determine the educational content shown above. The educational article is the
+                same for all users who log this topic area.
+              </Text>
+            </Animated.View>
+          )}
+
           {/* Action buttons */}
-          <Animated.View entering={FadeInDown.duration(300).delay(450)} style={styles.actions}>
+          <Animated.View entering={FadeInDown.duration(300).delay(500)} style={styles.actions}>
             <Pressable
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/scan-wizard'); }}
               style={[styles.actionBtn, { backgroundColor: Colors.primary }]}
@@ -215,6 +230,8 @@ import { Ionicons } from '@expo/vector-icons';
     confirmTitle: { fontSize: 15, fontWeight: '700' },
     confirmSub: { fontSize: 13, lineHeight: 18, marginTop: 2 },
     photo: { width: '100%', height: 200, borderRadius: 14, marginBottom: 16, borderWidth: 1 },
+    staticNotice: { flexDirection: 'row', gap: 10, borderRadius: 12, padding: 14, borderWidth: 1, marginBottom: 12, alignItems: 'flex-start' },
+    staticNoticeText: { fontSize: 13, lineHeight: 18, flex: 1 },
     sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 10, marginTop: 4 },
     card: { borderRadius: 14, borderWidth: 1, marginBottom: 8, overflow: 'hidden' },
     obsRow: { flexDirection: 'row', gap: 10, padding: 12, alignItems: 'center' },
