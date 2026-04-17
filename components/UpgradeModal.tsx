@@ -15,7 +15,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
   } from 'react-native';
   import { useSafeAreaInsets } from 'react-native-safe-area-context';
   import { Colors } from '@/constants/colors';
-  import { useSubscription } from '@/lib/revenuecat';
+  import { useSubscription, MONTHLY_PRODUCT_ID, ANNUAL_PRODUCT_ID } from '@/lib/revenuecat';
 
   const PRIVACY_POLICY_URL = 'https://cx2dqnngch-max.github.io/petsnap-health-checker/privacy.html';
   const TERMS_OF_USE_URL = 'https://cx2dqnngch-max.github.io/petsnap-health-checker/terms.html';
@@ -73,7 +73,13 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
     const handleSubscribe = async () => {
       if (!selectedPkg) {
         setStatusError(true);
-        setStatusMsg('Subscription plans are still loading. Please wait a moment and try again.');
+        setStatusMsg(
+            selectedPlan === 'monthly' && yearlyPkg
+              ? 'Monthly plan unavailable. Please select the Annual plan or try again later.'
+              : selectedPlan === 'annual' && monthlyPkg
+              ? 'Annual plan unavailable. Please select the Monthly plan or try again later.'
+              : 'Plans are loading. Please wait a moment and try again.'
+          );
         return;
       }
       setStatusMsg('');
